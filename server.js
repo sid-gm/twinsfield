@@ -33,6 +33,7 @@ const publicTemplate = (t) => ({
   renders: t.renders || 0, created_at: t.created_at,
   clip_url: media(rel(t.files.clip)), thumb_url: media(rel(t.files.thumb)), frame_url: media(rel(t.files.frame)),
   brief: brief(t), analyzing: !!t.analyzing,
+  remix_of: t.parent_render_id || null, protect: !!t.protect,
   est_cost: Object.fromEntries(Object.keys(ENGINES).map((e) => [e, estimateCost(t, e)])), hybrid_cost: HYBRID_PRICE,
 });
 const publicPersona = (p) => p && ({
@@ -47,11 +48,12 @@ const publicHybrid = (h) => h && ({
 const publicRender = (r) => ({
   id: r.id, group_id: r.group_id || null, template_id: r.template_id, persona_id: r.persona_id || null,
   engine: r.engine || r.mode || null, engine_name: ENGINES[r.engine]?.name || (r.mode ? 'older version' : ''), status: r.status,
-  plan: r.engine ? planFor(r.engine) : null, queue_position: r.queue_position ?? null,
+  plan: r.engine ? planFor(r.engine, !!db.get('templates', r.template_id)?.protect) : null, queue_position: r.queue_position ?? null,
   direction: r.direction || r.notes || null, prompt: r.prompt || null, error: r.error || null,
   est_cost_usd: r.est_cost_usd ?? null, cost_usd: r.cost_usd ?? null, latency_s: r.latency_s ?? null, created_at: r.created_at,
   output_url: media(r.output_path), persona: r.persona_id ? publicPersona(db.get('personas', r.persona_id)) : null,
   hybrid: r.hybrid_id ? publicHybrid(db.get('hybrids', r.hybrid_id)) : null,
+  protect: r.protect ? { region: r.protect.region || null, error: r.protect.error || null, full_url: media(r.protect.full_path) } : null,
 });
 
 const app = express();
@@ -68,10 +70,12 @@ app.get('/api/templates', (_req, res) => {
   res.json(rows.map(publicTemplate));
 });
 
-async function runAnalysis(id, keepUserDirection) {
+async function runAnalysis(id, keepUserDirection, target) {
   const t = db.get('templates', id);
   db.update('templates', id, { analyzing: true });
-  const b = await analyzeTemplate(t);
+  // A user-chosen target ("who gets replaced") survives re-analysis.
+  const fixed = target || (t.brief?.target_source === 'user' ? t.brief.main_subject : null);
+  const b = await analyzeTemplate(t, { target: fixed });
   const cur = db.get('templates', id);
   if (keepUserDirection && cur.brief?.source === 'user') { b.direction = cur.brief.direction; b.source = 'user'; }
   db.update('templates', id, { brief: b, analyzing: false });
@@ -105,8 +109,37 @@ app.patch('/api/templates/:id', (req, res) => {
   const patch = {};
   if (typeof req.body.title === 'string' && req.body.title.trim()) patch.title = req.body.title.trim();
   if (typeof req.body.direction === 'string') patch.brief = { ...brief(t), direction: req.body.direction.trim().slice(0, 400), source: 'user' };
+  const target = typeof req.body.main_subject === 'string' ? req.body.main_subject.trim().slice(0, 200) : null;
+  if (target) { patch.brief = { ...(patch.brief || brief(t)), main_subject: target, target_source: 'user' }; patch.protect_region = null; }
   if (req.body.status === 'retired') patch.status = 'retired';
-  res.json(publicTemplate(db.update('templates', t.id, patch)));
+  const updated = db.update('templates', t.id, patch);
+  // New target: refresh what-to-keep around it (in the background).
+  if (target) { db.update('templates', t.id, { analyzing: true }); runAnalysis(t.id, false, target); }
+  res.json(publicTemplate(db.get('templates', updated.id)));
+});
+
+// Remix: turn a finished meme into a new template and replace someone else in it.
+// The new template is "protected": only the region around the new target changes.
+app.post('/api/renders/:id/remix', async (req, res) => {
+  const r = db.get('renders', req.params.id);
+  if (!r || !r.output_path) return res.status(404).json({ error: 'Finished render not found' });
+  const parent = db.get('templates', r.template_id);
+  const target = (req.body?.target || '').trim().slice(0, 200) || null;
+  const id = newId();
+  try {
+    const prepared = await prepareTemplate(path.join(DATA, r.output_path), path.join(DATA, 'templates', id));
+    db.insert('templates', {
+      id, title: `Remix: ${parent?.title || 'meme'}`.slice(0, 120), status: 'live', created_at: new Date().toISOString(), renders: 0,
+      parent_render_id: r.id, protect: true, ...prepared,
+      brief: target ? { ...fallbackBrief(), main_subject: target, target_source: 'user' } : null,
+    });
+    db.update('templates', id, { analyzing: true });
+    runAnalysis(id, false, target);
+    res.json(publicTemplate(db.get('templates', id)));
+  } catch (e) {
+    fs.rmSync(path.join(DATA, 'templates', id), { recursive: true, force: true });
+    res.status(400).json({ error: e.message });
+  }
 });
 
 app.post('/api/templates/:id/analyze', async (req, res) => {

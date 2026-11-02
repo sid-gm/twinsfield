@@ -72,6 +72,14 @@
   .steps li.on { color: var(--text); } .steps li.on::before { border-color: var(--accent); background: var(--accent); animation: pulse 1s infinite alternate; }
   .steps li.ok { color: var(--text); } .steps li.ok::before { background: var(--accent); border-color: var(--accent); }
   @keyframes pulse { to { opacity: .35; } }
+  .targetrow { display: flex; gap: 6px; } .targetrow input { flex: 1; padding: 6px 9px; font-size: 13px; }
+  .protect { font-size: 12px; color: var(--accent); }
+  .tile { display: grid; gap: 4px; } .tile button { padding: 4px 8px; font-size: 11px; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; z-index: 10; padding: 16px; }
+  .overlay[hidden] { display: none; }
+  .dialog { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; width: min(460px, 100%); }
+  .dialog video { width: 100%; max-height: 300px; border-radius: 10px; background: #000; margin: 8px 0; }
+  .dialog .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; } .dialog .btns button { margin: 0; }
   .recent { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
   .recent video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 9/12; object-fit: cover; }
   .warns { margin-top: 8px; font-size: 13px; color: #ffd24d; } .warns div::before { content: "⚠︎ "; }
@@ -135,10 +143,22 @@
   </div>
 </main>
 
+<div class="overlay" id="remixDlg" hidden>
+  <div class="dialog">
+    <h2>Remix this meme</h2>
+    <p class="hint" style="margin:4px 0 0">Turns this video into a new template. Only the area around who you pick changes; everything else stays exactly as it is.</p>
+    <video id="remixVid" muted loop autoplay playsinline></video>
+    <label style="margin-top:4px">Who should be replaced?</label>
+    <input type="text" id="remixTarget" placeholder="e.g. the tabby cat on his lap" />
+    <div class="err" id="remixErr"></div>
+    <div class="btns"><button class="ghost" type="button" id="remixCancel" style="padding:12px">Cancel</button><button class="primary" type="button" id="remixGo">Create remix template</button></div>
+  </div>
+</div>
+
 <script>
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const PAGE_API_VERSION = 5;
+const PAGE_API_VERSION = 6;
 const STALE_MSG = 'The app server is running old code. In its Terminal window press Ctrl+C, then double-click start.command again.';
 let templates = [], selected = null, persona = null, hybrid = null, active = []; // active = render ids in flight
 
@@ -207,15 +227,23 @@ function selectTemplate(t) {
 }
 function renderBrief() {
   const t = selected; if (!t) return;
+  if (document.activeElement?.id === 'targetInput') return; // don't wipe what the user is typing
   const b = t.brief || {};
   if (!$('#direction').value && b.direction) $('#direction').value = b.direction;
   $('#brief').innerHTML = `
     <div><b>${esc(t.title)}</b> · ${t.duration_s}s</div>
-    <div>Gets replaced: <b>${t.analyzing ? '<span class="spin"></span>analyzing…' : esc(b.main_subject || 'the main character')}</b></div>
+    <div>Gets replaced:${t.analyzing ? ' <b><span class="spin"></span>analyzing…</b>' : ''}</div>
+    <div class="targetrow"><input type="text" id="targetInput" value="${esc(b.main_subject || '')}" placeholder="the main character" ${t.analyzing ? 'disabled' : ''} /><button class="ghost" id="targetSave" type="button" ${t.analyzing ? 'disabled' : ''}>Change</button></div>
+    ${t.protect ? '<div class="protect">🛡 Remix: everything outside this character stays exactly as in the original</div>' : ''}
     ${b.keep?.length ? `<div>Keeps: ${b.keep.map(esc).join(', ')}</div>` : ''}
     ${b.fit ? `<div><span class="fit ${b.fit}">${b.fit === 'good' ? 'good template' : b.fit === 'ok' ? 'ok template' : 'risky template'}</span> ${esc(b.fit_reason || '')}</div>` : ''}
     ${b.error ? `<div class="warns"><div>Analysis failed: ${esc(b.error)}</div></div>` : ''}
     <div><button class="ghost" id="reanalyze" type="button" ${t.analyzing ? 'disabled' : ''}>Re-analyze</button></div>`;
+  $('#targetSave').onclick = async () => {
+    const v = $('#targetInput').value.trim(); if (!v) return;
+    try { await api(`/api/templates/${t.id}`, jsonOpts('PATCH', { main_subject: v })); $('#direction').value = ''; hybrid = null; renderHybrid(); await loadTemplates(); }
+    catch (err) { $('#makeErr').textContent = err.message; }
+  };
   $('#reanalyze').onclick = async () => {
     $('#reanalyze').disabled = true;
     try { const nt = api(`/api/templates/${t.id}/analyze`, { method: 'POST' }); selected.analyzing = true; renderBrief(); await nt; $('#direction').value = ''; await loadTemplates(); }
@@ -356,7 +384,10 @@ function drawResult(r) {
   if (el.dataset.key === key) return; el.dataset.key = key;
   el.innerHTML = `<h3>${esc(r.engine_name)}</h3>
     ${r.status === 'done' ? `<video src="${r.output_url}" controls autoplay loop playsinline></video>
-      <div class="row"><a href="${r.output_url}" download="meme-${r.id}.mp4">Download</a><span>${r.latency_s}s · ${r.cost_usd ? '$' + r.cost_usd.toFixed(2) : 'mock, $0'}</span></div>`
+      <div class="row"><a href="${r.output_url}" download="meme-${r.id}.mp4">Download</a><span>${r.latency_s}s · ${r.cost_usd ? '$' + r.cost_usd.toFixed(2) : 'mock, $0'}</span>
+        ${r.protect?.full_url ? `<a href="${r.protect.full_url}" target="_blank">unprotected render</a>` : ''}</div>
+      ${r.protect?.error ? `<div class="warns"><div>Couldn't protect the rest of the frame (${esc(r.protect.error)}): showing the full render.</div></div>` : ''}
+      <button class="secondary" type="button" onclick="openRemix('${r.id}', '${r.output_url}')">Remix this meme</button>`
       : `<ul class="steps">${steps}</ul>`}
     ${r.status === 'failed' ? `<div class="err">${esc(r.error)}</div>` : ''}
     ${r.prompt ? `<details><summary>prompt sent</summary><p>${esc(r.prompt)}</p></details>` : ''}`;
@@ -364,8 +395,28 @@ function drawResult(r) {
 
 async function loadRecent() {
   const rs = await api('/api/renders'), el = $('#recent');
-  el.innerHTML = rs.length ? rs.map((r) => `<a href="${r.output_url}" target="_blank" title="${esc(r.engine_name)}"><video src="${r.output_url}#t=0.5" preload="metadata" muted loop playsinline onmouseenter="this.play()" onmouseleave="this.pause()"></video></a>`).join('') : '<div class="empty">Nothing yet.</div>';
+  el.innerHTML = rs.length ? rs.map((r) => `<div class="tile"><a href="${r.output_url}" target="_blank" title="${esc(r.engine_name)}"><video src="${r.output_url}#t=0.5" preload="metadata" muted loop playsinline onmouseenter="this.play()" onmouseleave="this.pause()"></video></a>
+    <button class="ghost" type="button" onclick="openRemix('${r.id}', '${r.output_url}')">Remix</button></div>`).join('') : '<div class="empty">Nothing yet.</div>';
 }
+
+// ---------- remix ----------
+let remixId = null;
+function openRemix(id, url) {
+  remixId = id; $('#remixVid').src = url; $('#remixTarget').value = ''; $('#remixErr').textContent = '';
+  $('#remixDlg').hidden = false; setTimeout(() => $('#remixTarget').focus(), 50);
+}
+$('#remixCancel').onclick = () => { $('#remixDlg').hidden = true; $('#remixVid').removeAttribute('src'); };
+$('#remixGo').onclick = async () => {
+  const target = $('#remixTarget').value.trim();
+  if (!target) { $('#remixErr').textContent = 'Say who to replace, e.g. "the tabby cat on his lap".'; return; }
+  const b = $('#remixGo'); b.disabled = true; b.innerHTML = '<span class="spin"></span>Creating…';
+  try {
+    const t = await api(`/api/renders/${remixId}/remix`, jsonOpts('POST', { target }));
+    $('#remixDlg').hidden = true; $('#remixVid').removeAttribute('src');
+    await loadTemplates(); selectTemplate(templates.find((x) => x.id === t.id) || t);
+  } catch (err) { $('#remixErr').textContent = err.message; }
+  finally { b.disabled = false; b.textContent = 'Create remix template'; }
+};
 
 loadSettings(); loadTemplates(); loadRecent();
 </script>

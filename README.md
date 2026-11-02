@@ -40,6 +40,16 @@ Manual: `cp .env.example .env` (add `FAL_KEY`), `npm install`, `npm start` → h
    head/face swap with the body and outfit kept. "What to keep" is appended. The original audio is
    kept or muxed back in.
 
+## Remix (chained edits)
+
+**Remix this meme** (on any result or recent meme) turns a finished video into a new *protected*
+template. You say who to replace, e.g. "the tabby cat on his lap". You can change it later in
+"Gets replaced"; the brief is then re-analyzed around that target, so everyone else goes in "keep".
+A person's photo on an animal target gives a human head on the animal's body.
+After rendering, a vision model boxes the target in 6 frames, and ffmpeg pastes the new render back
+**only inside that region, with a soft edge**. Everything else stays pixel-identical to the meme you
+started from. The unprotected full render is kept and linked for comparison.
+
 This is the same mechanism as Higgsfield Genjutsu's *replace* (source video + reference images +
 prompt) and the viral "Cat Human" template (Seedance 2.5 + one pet photo).
 
