@@ -3,157 +3,129 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>twin · meme templater</title>
+<title>twin · meme maker</title>
 <style>
-  :root {
-    --bg: #0f0f12; --panel: #17171c; --line: #2a2a33; --text: #f2f1ee; --muted: #9a99a3;
-    --accent: #c6ff3d; --accent-ink: #141a00; --warn: #ff8a5c; --blue: #4d9bff;
-    --r: 14px;
-  }
+  :root { --bg:#0f0f12; --panel:#17171c; --line:#2a2a33; --text:#f2f1ee; --muted:#9a99a3; --accent:#c6ff3d; --accent-ink:#141a00; --warn:#ff8a5c; --r:14px; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 ui-sans-serif, -apple-system, "SF Pro Text", system-ui, sans-serif; }
   header { display: flex; align-items: baseline; gap: 14px; padding: 22px 28px 8px; flex-wrap: wrap; }
-  h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; }
-  h1 b { color: var(--accent); }
+  h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; } h1 b { color: var(--accent); }
   .pill { font-size: 12px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
-  .pill.mock { color: var(--warn); border-color: var(--warn); }
-  .pill.live { color: var(--accent); border-color: var(--accent); }
-  main { display: grid; grid-template-columns: 340px 1fr; gap: 20px; padding: 16px 28px 40px; }
+  .pill.mock { color: var(--warn); border-color: var(--warn); } .pill.live { color: var(--accent); border-color: var(--accent); }
+  main { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 16px 28px 40px; align-items: start; }
   @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 12px 16px 32px; } header { padding: 18px 16px 4px; } }
-  main > section { align-self: start; }
   section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; }
-  h2 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
-  h2 .n { color: var(--accent); margin-right: 6px; }
+  .right { display: grid; gap: 20px; }
+  h2 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; } h2 .n { color: var(--accent); margin-right: 6px; }
   p.hint { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
   label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
-  input[type=text], select, textarea { width: 100%; background: #0f0f12; color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; }
-  textarea { resize: vertical; min-height: 60px; }
-  .drop { display: grid; place-items: center; text-align: center; gap: 6px; border: 1.5px dashed var(--line); border-radius: 12px; padding: 22px 12px; cursor: pointer; color: var(--muted); transition: border-color .15s, background .15s; position: relative; min-height: 120px; overflow: hidden; }
+  input[type=text], textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; }
+  textarea { resize: vertical; min-height: 64px; }
+  .drop { display: grid; place-items: center; text-align: center; gap: 6px; border: 1.5px dashed var(--line); border-radius: 12px; padding: 18px 12px; cursor: pointer; color: var(--muted); position: relative; min-height: 110px; overflow: hidden; }
   .drop:hover, .drop.over { border-color: var(--accent); background: #1c1f12; }
   .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .drop img, .drop video { max-width: 100%; max-height: 220px; border-radius: 8px; }
-  .drop strong { color: var(--text); }
-  .modes { display: grid; gap: 8px; }
-  .mode { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
-  .mode:has(input:checked) { border-color: var(--accent); background: #1c1f12; }
-  .mode input { margin-top: 3px; accent-color: var(--accent); }
-  .mode b { display: block; font-size: 14px; }
-  .mode span { font-size: 12px; color: var(--muted); }
-  button { appearance: none; border: 0; border-radius: 10px; padding: 12px 16px; font-family: inherit; font-weight: 650; font-size: 15px; line-height: 1; cursor: pointer; }
+  .drop img, .drop video { max-width: 100%; max-height: 200px; border-radius: 8px; } .drop strong { color: var(--text); }
+  button { appearance: none; border: 0; border-radius: 10px; padding: 12px 16px; font-family: inherit; font-weight: 650; font-size: 15px; line-height: 1.1; cursor: pointer; }
   button.primary { width: 100%; margin-top: 16px; background: var(--accent); color: var(--accent-ink); }
-  button.primary:disabled { opacity: .45; cursor: not-allowed; }
-  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 7px 10px; font-size: 12px; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 6px 10px; font-size: 12px; }
+  button.link { background: none; border: 0; padding: 0; color: var(--accent); font-size: 12px; font-weight: 500; }
   .err { color: var(--warn); font-size: 13px; margin-top: 10px; white-space: pre-wrap; }
-  .right { display: grid; gap: 20px; align-content: start; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
-  .card { background: #0f0f12; border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; transition: border-color .15s, transform .15s; }
-  .card:hover { transform: translateY(-2px); }
-  .card.sel { border-color: var(--accent); }
-  .card .media { aspect-ratio: 9/12; background: #000 center/cover no-repeat; position: relative; }
-  .card video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .card .meta { padding: 8px 10px 10px; }
-  .card .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card .s { font-size: 12px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-  .badge { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px; background: rgba(0,0,0,.65); }
-  .badge.kling { color: var(--accent); } .badge.wan { color: var(--blue); }
-  .grade { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: rgba(0,0,0,.7); }
-  .grade.A { color: var(--accent); } .grade.B { color: #ffd24d; } .grade.C { color: var(--warn); } .grade.none { color: var(--muted); }
-  .qa { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 0 0 16px; font-size: 13px; }
-  .qa.C { border-color: var(--warn); background: #24140f; } .qa.B { border-color: #6b5a1f; } .qa.A { border-color: #3d5214; }
-  .qa .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
-  .qa .big { font-size: 20px; font-weight: 800; }
-  .qa ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
-  .qa .tips li { color: var(--text); }
-  .warns { margin-top: 10px; font-size: 13px; color: #ffd24d; }
-  .warns div::before { content: "⚠︎ "; }
-  .empty { color: var(--muted); font-size: 14px; padding: 18px 0; }
-  .maker { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 700px) { .maker { grid-template-columns: 1fr; } }
-  .steps { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 6px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .card { background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform .15s, border-color .15s; }
+  .card:hover { transform: translateY(-2px); } .card.sel { border-color: var(--accent); }
+  .card .media { aspect-ratio: 9/12; background: #000 center/cover no-repeat; } .card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card .meta { padding: 8px 10px 10px; } .card .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .s { font-size: 12px; color: var(--muted); }
+  .empty { color: var(--muted); font-size: 14px; padding: 14px 0; }
+  .tplhead { display: grid; grid-template-columns: 150px 1fr; gap: 14px; margin-bottom: 6px; }
+  .tplhead video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 9/12; object-fit: cover; }
+  .brief { font-size: 13px; color: var(--muted); display: grid; gap: 6px; align-content: start; } .brief b { color: var(--text); font-weight: 600; }
+  .fit { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line); }
+  .fit.good { color: var(--accent); border-color: #3d5214; } .fit.ok { color: #ffd24d; border-color: #6b5a1f; } .fit.poor { color: var(--warn); border-color: var(--warn); }
+  .persona { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-top: 12px; font-size: 13px; }
+  .persona .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 8px; color: var(--muted); } .persona .head b { color: var(--text); }
+  .strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .strip figure { margin: 0; font-size: 11px; color: var(--muted); text-align: center; }
+  .strip img, .strip .ph { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 8px; display: grid; place-items: center; margin-bottom: 3px; background: var(--bg); border: 1px dashed var(--line); }
+  .strip img { border: 0; }
+  .hybrid { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-top: 14px; }
+  .hybrid .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hybrid figure { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+  .hybrid img, .hybrid .ph { width: 100%; max-height: 460px; object-fit: contain; background: #000; border-radius: 10px; display: grid; place-items: center; margin-bottom: 4px; aspect-ratio: 9/16; }
+  .hybrid details { font-size: 12px; color: var(--muted); margin-top: 6px; } .hybrid details p { white-space: pre-wrap; margin: 6px 0 0; }
+  button.secondary { width: 100%; margin-top: 12px; background: transparent; color: var(--text); border: 1px solid var(--accent); }
+  .engines { display: grid; gap: 8px; }
+  .eng { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+  .eng:has(input:checked) { border-color: var(--accent); background: #1c1f12; } .eng input { margin-top: 3px; accent-color: var(--accent); }
+  .eng b { display: block; font-size: 14px; } .eng span { font-size: 12px; color: var(--muted); } .eng .price { color: var(--text); font-weight: 600; }
+  .lblrow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; } .lblrow label { margin-bottom: 6px; }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 18px; }
+  .res { border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .res h3 { margin: 0 0 8px; font-size: 14px; }
+  .res video { width: 100%; border-radius: 10px; background: #000; max-height: 520px; }
+  .res .row { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; } .res .row a { color: var(--accent); }
+  .res details { font-size: 12px; color: var(--muted); margin-top: 6px; } .res details p { white-space: pre-wrap; margin: 6px 0 0; }
+  .steps { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 5px; font-size: 13px; }
   .steps li { color: var(--muted); display: flex; gap: 8px; align-items: center; }
   .steps li::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; }
   .steps li.on { color: var(--text); } .steps li.on::before { border-color: var(--accent); background: var(--accent); animation: pulse 1s infinite alternate; }
   .steps li.ok { color: var(--text); } .steps li.ok::before { background: var(--accent); border-color: var(--accent); }
   @keyframes pulse { to { opacity: .35; } }
-  .result video { width: 100%; max-height: 520px; border-radius: 12px; background: #000; }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--muted); }
-  .row a { color: var(--accent); }
-  .frames { display: flex; gap: 8px; margin-top: 10px; }
-  .frames figure { margin: 0; flex: 1; font-size: 11px; color: var(--muted); }
-  .frames img { width: 100%; border-radius: 8px; display: block; margin-bottom: 4px; }
-  .recent { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .recent { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
   .recent video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 9/12; object-fit: cover; }
-  .recent .f { aspect-ratio: 9/12; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; color: var(--muted); padding: 8px; text-align: center; }
-  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--accent-ink); border-top-color: transparent; border-radius: 50%; animation: s .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  .warns { margin-top: 8px; font-size: 13px; color: #ffd24d; } .warns div::before { content: "⚠︎ "; }
+  .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: s .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
   @keyframes s { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
-<header>
-  <h1>twin<b>.</b> meme templater</h1>
-  <span id="modePill" class="pill">…</span>
-</header>
-
+<header><h1>twin<b>.</b> meme maker</h1><span id="modePill" class="pill">…</span></header>
 <main>
-  <!-- 1. Make a template -->
   <section>
-    <h2><span class="n">1</span>Make a template</h2>
-    <p class="hint">Upload any clip. It's trimmed to 10s and saved as a reusable template.</p>
+    <h2><span class="n">1</span>New template</h2>
+    <p class="hint">A 3–10s clip with one clear main character (head and hands visible) works best.</p>
     <form id="tplForm">
-      <div class="drop" id="vidDrop">
-        <input type="file" name="video" accept="video/*" required />
-        <div id="vidPrompt"><strong>Drop a video</strong><br/>mp4 / mov · 2–10s works best</div>
-      </div>
+      <div class="drop" id="vidDrop"><input type="file" name="video" accept="video/*" required />
+        <div id="vidPrompt"><strong>Drop a video</strong><br/>mp4 / mov</div></div>
       <label>Title</label>
-      <input type="text" name="title" placeholder="e.g. Shocked guy turns around" />
-      <label>Render mode</label>
-      <div class="modes">
-        <label class="mode"><input type="radio" name="render_mode" value="auto" checked />
-          <div><b>Auto · let the quality check decide</b><span>Scores the clip, then picks Kling or Wan for it.</span></div></label>
-        <label class="mode"><input type="radio" name="render_mode" value="kling" />
-          <div><b>Kling 3.0 · one main character</b><span>Best quality. Subject is edited into frame 1, then animated with the clip's motion.</span></div></label>
-        <label class="mode"><input type="radio" name="render_mode" value="wan" />
-          <div><b>Wan 2.2 · keep the scene</b><span>Swaps the subject directly into the video. Cheaper, better for multi-person clips.</span></div></label>
-      </div>
+      <input type="text" name="title" placeholder="e.g. Guy serving cake at a party" />
+      <label>What to keep <span style="opacity:.7">(optional, auto-written if blank)</span></label>
+      <textarea name="direction" placeholder="e.g. Keep his grey polo shirt and the tray of plates."></textarea>
       <button class="primary" id="tplBtn" type="submit">Save template</button>
       <div class="err" id="tplErr"></div>
     </form>
   </section>
 
   <div class="right">
-    <!-- 2. Pick a template -->
     <section>
       <h2><span class="n">2</span>Pick a template</h2>
-      <p class="hint">Sorted by most used. Hover to preview.</p>
-      <div class="grid" id="tplGrid"><div class="empty">No templates yet. Make one on the left.</div></div>
+      <div class="grid" id="tplGrid"><div class="empty">No templates yet.</div></div>
     </section>
 
-    <!-- 3. Drop someone in -->
     <section id="makerSec" hidden>
-      <h2><span class="n">3</span>Drop someone in</h2>
-      <p class="hint" id="makerHint"></p>
-      <div id="qaPanel"></div>
-      <div class="maker">
-        <form id="renderForm">
-          <div class="drop" id="imgDrop">
-            <input type="file" name="image" accept="image/*" required />
-            <div id="imgPrompt"><strong>Drop a selfie, a friend, a dog…</strong><br/>clear, well-lit, full face or body</div>
-          </div>
-          <label>Mode</label>
-          <select name="mode" id="modeSel">
-            <option value="kling">Kling 3.0 · one main character</option>
-            <option value="wan">Wan 2.2 · keep the scene</option>
-          </select>
-          <label>Direction (optional)</label>
-          <textarea name="notes" placeholder="e.g. make him wear sunglasses; the dog replaces the man on the left"></textarea>
-          <button class="primary" id="renderBtn" type="submit">Make meme</button>
-          <div class="err" id="renderErr"></div>
-        </form>
-        <div class="result" id="result">
-          <ul class="steps" id="steps"></ul>
-          <div id="resultBody"></div>
-        </div>
+      <h2><span class="n">3</span>Make the meme</h2>
+      <div class="tplhead"><video id="tplVideo" muted loop autoplay playsinline></video><div class="brief" id="brief"></div></div>
+
+      <div class="drop" id="imgDrop" style="margin-top:12px"><input type="file" accept="image/*" />
+        <div id="imgPrompt"><strong>Drop your pet or friend</strong><br/>one clear face; for pets, front legs in view helps</div></div>
+      <div id="personaPanel"></div>
+
+      <div class="lblrow"><label>What to keep</label><button class="link" id="saveDefault" type="button">save as template default</button></div>
+      <textarea id="direction"></textarea>
+
+      <button class="secondary" id="hybridBtn" type="button" disabled>Create hybrid still</button>
+      <div id="hybridPanel"></div>
+
+      <label>Engine</label>
+      <div class="engines">
+        <label class="eng"><input type="radio" name="engine" value="kling" checked /><div><b>Kling O3 edit <span class="price" data-e="kling"></span></b><span>Edits the clip to match the hybrid still.</span></div></label>
+        <label class="eng"><input type="radio" name="engine" value="seedance" /><div><b>Seedance 2.5 <span class="price" data-e="seedance"></span></b><span>What the viral "Cat Human" template uses. Also gets the clean face close-up.</span></div></label>
+        <label class="eng"><input type="radio" name="engine" value="compare" /><div><b>Compare both <span class="price" data-e="compare"></span></b><span>Run both side by side to learn which suits this template.</span></div></label>
       </div>
+      <button class="primary" id="makeBtn" type="button" disabled>Make meme</button>
+      <div class="err" id="makeErr"></div>
+      <div class="results" id="results"></div>
     </section>
 
     <section>
@@ -165,41 +137,50 @@
 
 <script>
 const $ = (s) => document.querySelector(s);
-let templates = [], selected = null, pollTimer = null;
-
-const STEPS = {
-  kling: [['uploading', 'Uploading'], ['editing_frame', 'Putting them in the scene'], ['animating', 'Animating with Kling 3.0'], ['finishing', 'Adding audio'], ['done', 'Done']],
-  wan:   [['uploading', 'Uploading'], ['animating', 'Swapping with Wan 2.2'], ['finishing', 'Adding audio'], ['done', 'Done']],
-};
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const PAGE_API_VERSION = 5;
+const STALE_MSG = 'The app server is running old code. In its Terminal window press Ctrl+C, then double-click start.command again.';
+let templates = [], selected = null, persona = null, hybrid = null, active = []; // active = render ids in flight
 
 async function api(url, opts) {
   const res = await fetch(url, opts);
   const j = await res.json().catch(() => ({}));
+  if (res.status === 404 && !j.error) throw new Error(STALE_MSG);
   if (!res.ok) throw new Error(j.error || res.statusText);
   return j;
 }
+const jsonOpts = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
-function previewFile(input, slot, kind) {
+function dropPreview(input, slot, kind) {
   input.addEventListener('change', () => {
     const f = input.files[0]; if (!f) return;
     const url = URL.createObjectURL(f);
     slot.innerHTML = kind === 'video' ? `<video src="${url}" muted autoplay loop playsinline></video>` : `<img src="${url}" alt="">`;
   });
-  const drop = input.parentElement;
-  ['dragenter', 'dragover'].forEach((e) => drop.addEventListener(e, () => drop.classList.add('over')));
-  ['dragleave', 'drop'].forEach((e) => drop.addEventListener(e, () => drop.classList.remove('over')));
+  const d = input.parentElement;
+  ['dragenter', 'dragover'].forEach((e) => d.addEventListener(e, () => d.classList.add('over')));
+  ['dragleave', 'drop'].forEach((e) => d.addEventListener(e, () => d.classList.remove('over')));
 }
-previewFile($('#vidDrop input'), $('#vidPrompt'), 'video');
-previewFile($('#imgDrop input'), $('#imgPrompt'), 'image');
+dropPreview($('#vidDrop input'), $('#vidPrompt'), 'video');
+dropPreview($('#imgDrop input'), $('#imgPrompt'), 'image');
 
 async function loadSettings() {
-  const s = await api('/api/settings');
-  const p = $('#modePill');
+  const s = await api('/api/settings'), p = $('#modePill');
+  if ((s.api_version || 0) < PAGE_API_VERSION) { p.textContent = '⚠︎ restart the app server'; p.className = 'pill mock'; p.title = STALE_MSG; alert(STALE_MSG); return; }
   if (s.mock) { p.textContent = 'MOCK mode · no fal calls'; p.className = 'pill mock'; }
   else if (!s.has_key) { p.textContent = 'FAL_KEY missing (see .env)'; p.className = 'pill mock'; }
-  else { p.textContent = `live · kling ${s.kling_tier} · wan ${s.wan_resolution}`; p.className = 'pill live'; }
+  else { p.textContent = 'live · fal'; p.className = 'pill live'; }
 }
 
+// ---------- templates ----------
+let tplTimer = null;
+async function loadTemplates() {
+  templates = await api('/api/templates');
+  if (selected) { selected = templates.find((t) => t.id === selected.id) || null; renderBrief(); }
+  renderGrid();
+  clearTimeout(tplTimer);
+  if (templates.some((t) => t.analyzing)) tplTimer = setTimeout(loadTemplates, 2000);
+}
 function renderGrid() {
   const g = $('#tplGrid');
   if (!templates.length) { g.innerHTML = '<div class="empty">No templates yet. Make one on the left.</div>'; return; }
@@ -207,141 +188,184 @@ function renderGrid() {
   for (const t of templates) {
     const c = document.createElement('div');
     c.className = 'card' + (selected?.id === t.id ? ' sel' : '');
-    c.innerHTML = `
-      <div class="media" style="background-image:url('${t.thumb_url}')">
-        <span class="badge ${t.render_mode}">${t.render_mode === 'kling' ? 'KLING' : 'WAN'}</span>
-        ${t.qa ? `<span class="grade ${t.qa.grade}" title="${esc((t.qa.issues || []).join(' · '))}">${t.qa.grade} ${t.qa.score}${t.qa.partial ? '*' : ''}</span>` : '<span class="grade none" title="Not checked yet">?</span>'}
-      </div>
-      <div class="meta"><div class="t" title="${esc(t.title)}">${esc(t.title)}</div>
-      <div class="s"><span>${t.duration_s}s</span><span>· ~$${t.est_cost[t.render_mode].toFixed(2)}</span><span>· ${t.renders} made</span></div></div>`;
-    const media = c.querySelector('.media');
-    c.addEventListener('mouseenter', () => { media.innerHTML += `<video src="${t.clip_url}" muted autoplay loop playsinline></video>`; });
-    c.addEventListener('mouseleave', () => { media.querySelector('video')?.remove(); });
-    c.addEventListener('click', () => selectTemplate(t));
+    c.innerHTML = `<div class="media" style="background-image:url('${t.thumb_url}')"></div>
+      <div class="meta"><div class="t" title="${esc(t.title)}">${esc(t.title)}</div><div class="s">${t.duration_s}s · ${t.renders} made</div></div>`;
+    const m = c.querySelector('.media');
+    c.onmouseenter = () => { m.innerHTML = `<video src="${t.clip_url}" muted autoplay loop playsinline></video>`; };
+    c.onmouseleave = () => { m.innerHTML = ''; };
+    c.onclick = () => selectTemplate(t);
     g.appendChild(c);
   }
 }
-
 function selectTemplate(t) {
+  const changed = selected?.id !== t.id;
   selected = t;
   $('#makerSec').hidden = false;
-  $('#modeSel').value = t.render_mode;
-  updateHint();
-  renderQA();
-  renderGrid();
+  if (changed) { $('#tplVideo').src = t.clip_url; $('#direction').value = t.brief?.direction || ''; $('#results').innerHTML = ''; hybrid = null; renderHybrid(); }
+  renderBrief(); renderGrid(); updateMake();
   $('#makerSec').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-function updateHint() {
-  if (!selected) return;
-  const m = $('#modeSel').value;
-  $('#makerHint').textContent = `Template: “${selected.title}” · ${selected.duration_s}s · est. $${selected.est_cost[m].toFixed(2)} with ${m === 'kling' ? 'Kling 3.0' : 'Wan 2.2'}`;
-}
-$('#modeSel').addEventListener('change', updateHint);
-
-const GRADE_TEXT = { A: 'Good template', B: 'May work: expect some artifacts', C: 'Likely poor results' };
-function renderQA() {
-  const el = $('#qaPanel'), t = selected;
-  if (!t) { el.innerHTML = ''; return; }
-  if (!t.qa) {
-    el.innerHTML = `<div class="qa"><div class="head"><b>Not quality-checked yet</b><button class="ghost" id="qaBtn" type="button">Run quality check</button></div></div>`;
-  } else {
-    const q = t.qa, m = q.metrics || {};
-    el.innerHTML = `<div class="qa ${q.grade}">
-      <div class="head"><span class="big">${q.grade} · ${q.score}</span><b>${GRADE_TEXT[q.grade]}</b>
-        <span style="color:var(--muted)">best with ${q.recommended_mode === 'wan' ? 'Wan 2.2' : 'Kling 3.0'}${q.partial ? ' · metrics only' : ''}</span>
-        <button class="ghost" id="qaBtn" type="button">Re-check</button></div>
-      ${q.main_subject ? `<div style="color:var(--muted)">Main character: ${esc(q.main_subject)}</div>` : ''}
-      <div style="color:var(--muted)">cuts ${m.scene_cuts ?? '–'} · motion ${m.motion_avg ?? '–'} · brightness ${m.brightness ?? '–'}/255</div>
-      ${q.issues?.length ? `<ul>${q.issues.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
-      ${q.tips?.length ? `<ul class="tips">${q.tips.map((i) => `<li>💡 ${esc(i)}</li>`).join('')}</ul>` : ''}
-    </div>`;
-  }
-  $('#qaBtn').onclick = async (ev) => {
-    const b = ev.target; b.disabled = true; b.innerHTML = '<span class="spin" style="border-color:var(--muted);border-top-color:transparent"></span>Checking…';
-    try { const nt = await api(`/api/templates/${t.id}/qa`, { method: 'POST' }); await loadTemplates(); selected = templates.find((x) => x.id === nt.id) || nt; renderQA(); renderGrid(); }
-    catch (err) { b.textContent = 'Check failed: ' + err.message; }
+function renderBrief() {
+  const t = selected; if (!t) return;
+  const b = t.brief || {};
+  if (!$('#direction').value && b.direction) $('#direction').value = b.direction;
+  $('#brief').innerHTML = `
+    <div><b>${esc(t.title)}</b> · ${t.duration_s}s</div>
+    <div>Gets replaced: <b>${t.analyzing ? '<span class="spin"></span>analyzing…' : esc(b.main_subject || 'the main character')}</b></div>
+    ${b.keep?.length ? `<div>Keeps: ${b.keep.map(esc).join(', ')}</div>` : ''}
+    ${b.fit ? `<div><span class="fit ${b.fit}">${b.fit === 'good' ? 'good template' : b.fit === 'ok' ? 'ok template' : 'risky template'}</span> ${esc(b.fit_reason || '')}</div>` : ''}
+    ${b.error ? `<div class="warns"><div>Analysis failed: ${esc(b.error)}</div></div>` : ''}
+    <div><button class="ghost" id="reanalyze" type="button" ${t.analyzing ? 'disabled' : ''}>Re-analyze</button></div>`;
+  $('#reanalyze').onclick = async () => {
+    $('#reanalyze').disabled = true;
+    try { const nt = api(`/api/templates/${t.id}/analyze`, { method: 'POST' }); selected.analyzing = true; renderBrief(); await nt; $('#direction').value = ''; await loadTemplates(); }
+    catch (err) { $('#makeErr').textContent = err.message; }
   };
 }
-
-async function loadTemplates() {
-  templates = await api('/api/templates');
-  if (selected) selected = templates.find((t) => t.id === selected.id) || null;
-  renderGrid();
-}
-
 $('#tplForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('#tplBtn'); $('#tplErr').textContent = '';
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Prepping clip + quality check…';
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Preparing clip…';
   try {
     const t = await api('/api/templates', { method: 'POST', body: new FormData(e.target) });
-    e.target.reset(); $('#vidPrompt').innerHTML = '<strong>Drop a video</strong><br/>mp4 / mov · 2–10s works best';
-    await loadTemplates();
-    selectTemplate(templates.find((x) => x.id === t.id) || t);
+    e.target.reset(); $('#vidPrompt').innerHTML = '<strong>Drop a video</strong><br/>mp4 / mov';
+    await loadTemplates(); selectTemplate(templates.find((x) => x.id === t.id) || t);
   } catch (err) { $('#tplErr').textContent = err.message; }
   finally { btn.disabled = false; btn.textContent = 'Save template'; }
 });
-
-$('#renderForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+$('#saveDefault').addEventListener('click', async () => {
   if (!selected) return;
-  const btn = $('#renderBtn'); $('#renderErr').textContent = ''; $('#resultBody').innerHTML = '';
-  const fd = new FormData(e.target); fd.append('template_id', selected.id);
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Cooking…';
-  try {
-    const r = await api('/api/renders', { method: 'POST', body: fd });
-    poll(r.id);
-  } catch (err) { $('#renderErr').textContent = err.message; btn.disabled = false; btn.textContent = 'Make meme'; }
+  try { await api(`/api/templates/${selected.id}`, jsonOpts('PATCH', { direction: $('#direction').value })); await loadTemplates(); $('#saveDefault').textContent = 'saved ✓'; setTimeout(() => ($('#saveDefault').textContent = 'save as template default'), 1500); }
+  catch (err) { $('#makeErr').textContent = err.message; }
 });
 
-function drawSteps(r) {
-  const list = r.plan || STEPS[r.mode];
-  const idx = list.findIndex(([k]) => k === r.status);
-  $('#steps').innerHTML = list.map(([k, label], i) => {
-    const cls = r.status === 'done' || (idx > -1 && i < idx) ? 'ok' : i === idx ? 'on' : '';
-    const extra = k === 'animating' && r.status === 'animating' && r.queue_position != null ? ` (queue #${r.queue_position})` : '';
-    return `<li class="${cls}">${label}${extra}</li>`;
-  }).join('');
+// ---------- persona ----------
+let personaTimer = null;
+const PSTATUS = { queued: 'queued…', checking: 'checking the photo…', cleaning: 'cleaning up (removing hats, glasses, background)…', angles: 'generating other angles…', done: 'ready', failed: 'failed' };
+$('#imgDrop input').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const fd = new FormData(); fd.append('image', f); $('#makeErr').textContent = '';
+  hybrid = null; renderHybrid();
+  try { persona = await api('/api/personas', { method: 'POST', body: fd }); renderPersona(); pollPersona(); }
+  catch (err) { $('#makeErr').textContent = err.message; }
+});
+function pollPersona() {
+  clearTimeout(personaTimer);
+  personaTimer = setTimeout(async () => {
+    persona = await api(`/api/personas/${persona.id}`).catch(() => persona);
+    renderPersona();
+    if (!['done', 'failed'].includes(persona.status)) pollPersona();
+  }, 1500);
+}
+function renderPersona() {
+  const p = persona, el = $('#personaPanel');
+  if (!p) { el.innerHTML = ''; updateMake(); return; }
+  const busy = !['done', 'failed'].includes(p.status);
+  const fig = (url, label) => `<figure>${url ? `<img src="${url}" alt="">` : `<div class="ph">${busy ? '<span class="spin" style="color:var(--muted)"></span>' : '–'}</div>`}${label}</figure>`;
+  const names = ['¾ view', 'side', '¾ other side'];
+  el.innerHTML = `<div class="persona">
+    <div class="head"><b>Persona</b><span>${PSTATUS[p.status] || p.status}${p.subject_check?.description ? ` · ${esc(p.subject_check.description)}` : ''}${p.status === 'done' && p.cost_usd ? ` · $${p.cost_usd.toFixed(2)}` : ''}</span>
+      ${busy ? '' : '<button class="ghost" id="rebuild" type="button">Rebuild</button>'}</div>
+    <div class="strip">${fig(p.original_url, 'photo')}${fig(p.clean_url, 'cleaned')}${[0, 1, 2].map((i) => fig(p.angles[i]?.url, p.angles[i]?.label || names[i])).join('')}</div>
+    ${p.error ? `<div class="err">${esc(p.error)}</div>` : ''}
+    ${p.warnings?.length ? `<div class="warns">${p.warnings.map((w) => `<div>${esc(w)}</div>`).join('')}</div>` : ''}
+  </div>`;
+  const rb = $('#rebuild');
+  if (rb) rb.onclick = async () => { persona = await api(`/api/personas/${p.id}/rebuild`, { method: 'POST' }); renderPersona(); pollPersona(); };
+  updateMake();
 }
 
-function poll(id) {
-  clearTimeout(pollTimer);
-  const tick = async () => {
-    const r = await api(`/api/renders/${id}`).catch(() => null);
-    if (!r) { pollTimer = setTimeout(tick, 2000); return; }
-    drawSteps(r);
-    if (r.status === 'done') {
-      $('#resultBody').innerHTML = `
-        <video src="${r.output_url}" controls autoplay loop playsinline></video>
-        <div class="row"><a href="${r.output_url}" download="meme-${r.id}.mp4">Download mp4</a>
-          <span>· ${r.latency_s}s · ${r.cost_usd ? '$' + r.cost_usd.toFixed(2) : 'mock, $0'}</span></div>
-        ${(r.warnings || []).length ? `<div class="warns">${r.warnings.map((w) => `<div>${esc(w)}</div>`).join('')}</div>` : ''}
-        <div class="frames">
-          <figure><img src="${r.subject_url}">your photo</figure>
-          ${r.character_url ? `<figure><img src="${r.character_url}">as a character</figure>` : ''}
-          ${r.edited_frame_url ? `<figure><img src="${selected?.frame_url || ''}">original frame</figure>` : ''}
-          ${(r.edit_attempts || []).length ? r.edit_attempts.map((a) => `<figure><img src="${a.url}">edit #${a.attempt} ${a.ok ? '✓' : '✗'}</figure>`).join('') : (r.edited_frame_url ? `<figure><img src="${r.edited_frame_url}">edited frame</figure>` : '')}
-        </div>`;
-      done(); loadTemplates(); loadRecent();
-    } else if (r.status === 'failed') {
-      $('#renderErr').textContent = 'Render failed: ' + (r.error || 'unknown error') + ((r.warnings || []).length ? '\n' + r.warnings.join('\n') : '');
-      done(); loadRecent();
-    } else pollTimer = setTimeout(tick, 2000);
-  };
-  const done = () => { const b = $('#renderBtn'); b.disabled = false; b.textContent = 'Make meme'; };
-  tick();
+// ---------- hybrid still ----------
+let hybridTimer = null;
+const HSTATUS = { analyzing: 'analyzing the template first…', queued: 'queued…', generating: 'generating the hybrid (~20–40s)…', done: 'ready: check it before making the video', failed: 'failed' };
+$('#hybridBtn').addEventListener('click', async () => {
+  $('#makeErr').textContent = '';
+  try {
+    hybrid = await api('/api/hybrids', jsonOpts('POST', { template_id: selected.id, persona_id: persona.id, direction: $('#direction').value }));
+    renderHybrid(); pollHybrid();
+  } catch (err) { $('#makeErr').textContent = err.message; }
+});
+function pollHybrid() {
+  clearTimeout(hybridTimer);
+  hybridTimer = setTimeout(async () => {
+    hybrid = await api(`/api/hybrids/${hybrid.id}`).catch(() => hybrid);
+    renderHybrid();
+    if (!['done', 'failed'].includes(hybrid.status)) pollHybrid(); else loadTemplates();
+  }, 1500);
+}
+function renderHybrid() {
+  const el = $('#hybridPanel');
+  if (!hybrid) { el.innerHTML = ''; updateMake(); return; }
+  const h = hybrid, busy = !['done', 'failed'].includes(h.status);
+  el.innerHTML = `<div class="hybrid">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px"><b style="color:var(--text)">Hybrid still</b> · ${HSTATUS[h.status] || h.status}${h.status === 'done' && h.cost_usd ? ` · $${h.cost_usd.toFixed(2)}` : ''}</div>
+    <div class="pair">
+      <figure><img src="${selected.frame_url}" alt="">original frame</figure>
+      <figure>${h.image_url ? `<img src="${h.image_url}?v=${h.id}" alt="">` : `<div class="ph">${busy ? '<span class="spin" style="color:var(--muted)"></span>' : '–'}</div>`}hybrid: the video will copy this</figure>
+    </div>
+    ${h.error ? `<div class="err">${esc(h.error)}</div>` : ''}
+    ${h.status === 'done' ? '<div style="font-size:12px;color:var(--muted);margin-top:6px">Not right? Edit "What to keep" above and press Try again.</div>' : ''}
+    ${h.prompt ? `<details><summary>prompt sent</summary><p>${esc(h.prompt)}</p></details>` : ''}
+  </div>`;
+  updateMake();
+}
+
+// ---------- make ----------
+const engineVal = () => document.querySelector('input[name=engine]:checked').value;
+function updateMake() {
+  if (!selected) return;
+  const c = selected.est_cost, price = { kling: c.kling, seedance: c.seedance, compare: c.kling + c.seedance };
+  document.querySelectorAll('.price').forEach((el) => (el.textContent = `· ~$${price[el.dataset.e].toFixed(2)}`));
+  const hb = $('#hybridBtn'), hBusy = hybrid && !['done', 'failed'].includes(hybrid.status);
+  const personaReady = persona && persona.status === 'done';
+  hb.disabled = !personaReady || hBusy || active.length > 0;
+  hb.innerHTML = hBusy ? '<span class="spin"></span>Creating hybrid still…' : `${hybrid ? 'Try again' : 'Create hybrid still'} (~$${(selected.hybrid_cost || 0.15).toFixed(2)})`;
+  const b = $('#makeBtn');
+  if (active.length) return;
+  const ready = hybrid && hybrid.status === 'done';
+  b.disabled = !ready;
+  b.textContent = !persona ? 'Add a photo first' : !personaReady ? 'Building persona…' : !ready ? 'Create the hybrid still first' : `Make meme (~$${price[engineVal()].toFixed(2)})`;
+}
+document.querySelectorAll('input[name=engine]').forEach((x) => x.addEventListener('change', updateMake));
+
+$('#makeBtn').addEventListener('click', async () => {
+  $('#makeErr').textContent = '';
+  try {
+    const rs = await api('/api/renders', jsonOpts('POST', { template_id: selected.id, hybrid_id: hybrid.id, engine: engineVal(), direction: $('#direction').value }));
+    active = rs.map((r) => r.id);
+    $('#makeBtn').disabled = true; $('#hybridBtn').disabled = true; $('#makeBtn').innerHTML = '<span class="spin"></span>Cooking… (usually 2–8 min)';
+    $('#results').innerHTML = rs.map((r) => `<div class="res" id="res-${r.id}"></div>`).join('');
+    rs.forEach(drawResult); pollRenders();
+  } catch (err) { $('#makeErr').textContent = err.message; }
+});
+let renderTimer = null;
+function pollRenders() {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(async () => {
+    const rs = await Promise.all(active.map((id) => api(`/api/renders/${id}`).catch(() => null)));
+    rs.filter(Boolean).forEach(drawResult);
+    active = rs.filter((r) => r && !['done', 'failed'].includes(r.status)).map((r) => r.id);
+    if (active.length) pollRenders(); else { updateMake(); loadTemplates(); loadRecent(); }
+  }, 2500);
+}
+function drawResult(r) {
+  const el = $(`#res-${r.id}`); if (!el) return;
+  const idx = (r.plan || []).findIndex(([k]) => k === r.status);
+  const steps = (r.plan || []).map(([k, l], i) => `<li class="${r.status === 'done' || (idx > -1 && i < idx) ? 'ok' : i === idx ? 'on' : ''}">${l}${k === 'generating' && r.status === 'generating' && r.queue_position != null ? ` (queue #${r.queue_position})` : ''}</li>`).join('');
+  const key = r.status + (r.output_url || '') + (r.queue_position ?? '');
+  if (el.dataset.key === key) return; el.dataset.key = key;
+  el.innerHTML = `<h3>${esc(r.engine_name)}</h3>
+    ${r.status === 'done' ? `<video src="${r.output_url}" controls autoplay loop playsinline></video>
+      <div class="row"><a href="${r.output_url}" download="meme-${r.id}.mp4">Download</a><span>${r.latency_s}s · ${r.cost_usd ? '$' + r.cost_usd.toFixed(2) : 'mock, $0'}</span></div>`
+      : `<ul class="steps">${steps}</ul>`}
+    ${r.status === 'failed' ? `<div class="err">${esc(r.error)}</div>` : ''}
+    ${r.prompt ? `<details><summary>prompt sent</summary><p>${esc(r.prompt)}</p></details>` : ''}`;
 }
 
 async function loadRecent() {
-  const rs = await api('/api/renders');
-  const el = $('#recent');
-  if (!rs.length) { el.innerHTML = '<div class="empty">Nothing yet.</div>'; return; }
-  el.innerHTML = rs.map((r) => r.status === 'done'
-    ? `<a href="${r.output_url}" target="_blank"><video src="${r.output_url}#t=0.5" preload="metadata" muted loop playsinline onmouseenter="this.play()" onmouseleave="this.pause()"></video></a>`
-    : `<div class="f">${r.status === 'failed' ? '⚠︎ failed' : '⏳ ' + r.status.replace('_', ' ')}</div>`).join('');
+  const rs = await api('/api/renders'), el = $('#recent');
+  el.innerHTML = rs.length ? rs.map((r) => `<a href="${r.output_url}" target="_blank" title="${esc(r.engine_name)}"><video src="${r.output_url}#t=0.5" preload="metadata" muted loop playsinline onmouseenter="this.play()" onmouseleave="this.pause()"></video></a>`).join('') : '<div class="empty">Nothing yet.</div>';
 }
-
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 loadSettings(); loadTemplates(); loadRecent();
 </script>
