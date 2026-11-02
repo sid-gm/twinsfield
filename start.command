@@ -1,5 +1,5 @@
 #!/bin/bash
-# Double-click to launch the twin meme templater on this Mac.
+# Double-click to launch bloop on this Mac.
 # Works on any Mac: finds Node (Homebrew, nvm, fnm, Volta, asdf, nodejs.org installer),
 # reinstalls dependencies when the machine / chip / Node version changes, and keeps the
 # window open on errors so you can read them.
@@ -8,7 +8,7 @@ cd "$(dirname "$0")" || exit 1
 LOG="$PWD/start.log"
 fail() { echo; echo "❌ $1"; echo "(details also saved to start.log)"; read -n1 -r -p "Press any key to close…"; exit 1; }
 exec > >(tee "$LOG") 2>&1
-echo "twin · starting from $PWD  ($(sw_vers -productVersion 2>/dev/null) · $(uname -m))"
+echo "bloop · starting from $PWD  ($(sw_vers -productVersion 2>/dev/null) · $(uname -m))"
 
 # --- 1. Find Node -----------------------------------------------------------
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.volta/bin:$HOME/.local/share/fnm:$HOME/.fnm:$HOME/.asdf/shims:$PATH"
@@ -34,14 +34,24 @@ if [ ! -f node_modules/.install-stamp ] || [ "$(cat node_modules/.install-stamp)
   echo "$STAMP" > node_modules/.install-stamp
 fi
 
+# --- 2b. yt-dlp (turns links into templates; optional) ----------------------
+if ! command -v yt-dlp >/dev/null 2>&1; then
+  if command -v brew >/dev/null 2>&1; then
+    echo "Installing yt-dlp so links can become templates…"
+    brew install yt-dlp || echo "⚠️  yt-dlp didn't install: pasting links won't work (uploads still do)."
+  else
+    echo "⚠️  yt-dlp not found: pasting links won't work. Install it with: brew install yt-dlp"
+  fi
+fi
+
 # --- 3. Config --------------------------------------------------------------
 [ -f .env ] || { cp .env.example .env; echo "⚠️  Created .env from .env.example: add your FAL_KEY to it, then relaunch."; }
 
 # --- 4. Port: use .env PORT, or the next free one ---------------------------
 PORT=$(grep -E '^PORT=' .env 2>/dev/null | cut -d= -f2 | tr -d '[:space:]"'); PORT=${PORT:-3000}
 while lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; do
-  if curl -s "http://localhost:$PORT/api/settings" | grep -q kling_tier; then
-    echo "twin is already running on port $PORT: opening it."; open "http://localhost:$PORT"; sleep 1; exit 0
+  if curl -s "http://localhost:$PORT/api/settings" | grep -q "\"engines\""; then
+    echo "bloop is already running on port $PORT: opening it."; open "http://localhost:$PORT"; sleep 1; exit 0
   fi
   echo "Port $PORT is busy, trying $((PORT+1))"; PORT=$((PORT+1))
 done

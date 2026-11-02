@@ -1,424 +1,812 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>twin · meme maker</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f12">
+<title>bloop</title>
 <style>
-  :root { --bg:#0f0f12; --panel:#17171c; --line:#2a2a33; --text:#f2f1ee; --muted:#9a99a3; --accent:#c6ff3d; --accent-ink:#141a00; --warn:#ff8a5c; --r:14px; }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 ui-sans-serif, -apple-system, "SF Pro Text", system-ui, sans-serif; }
-  header { display: flex; align-items: baseline; gap: 14px; padding: 22px 28px 8px; flex-wrap: wrap; }
-  h1 { margin: 0; font-size: 26px; letter-spacing: -0.02em; } h1 b { color: var(--accent); }
-  .pill { font-size: 12px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
-  .pill.mock { color: var(--warn); border-color: var(--warn); } .pill.live { color: var(--accent); border-color: var(--accent); }
-  main { display: grid; grid-template-columns: 320px 1fr; gap: 20px; padding: 16px 28px 40px; align-items: start; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 12px 16px 32px; } header { padding: 18px 16px 4px; } }
-  section { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; }
-  .right { display: grid; gap: 20px; }
-  h2 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; } h2 .n { color: var(--accent); margin-right: 6px; }
-  p.hint { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px; }
-  input[type=text], textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; }
-  textarea { resize: vertical; min-height: 64px; }
-  .drop { display: grid; place-items: center; text-align: center; gap: 6px; border: 1.5px dashed var(--line); border-radius: 12px; padding: 18px 12px; cursor: pointer; color: var(--muted); position: relative; min-height: 110px; overflow: hidden; }
-  .drop:hover, .drop.over { border-color: var(--accent); background: #1c1f12; }
-  .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .drop img, .drop video { max-width: 100%; max-height: 200px; border-radius: 8px; } .drop strong { color: var(--text); }
-  button { appearance: none; border: 0; border-radius: 10px; padding: 12px 16px; font-family: inherit; font-weight: 650; font-size: 15px; line-height: 1.1; cursor: pointer; }
-  button.primary { width: 100%; margin-top: 16px; background: var(--accent); color: var(--accent-ink); }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 6px 10px; font-size: 12px; }
-  button.link { background: none; border: 0; padding: 0; color: var(--accent); font-size: 12px; font-weight: 500; }
-  .err { color: var(--warn); font-size: 13px; margin-top: 10px; white-space: pre-wrap; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-  .card { background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform .15s, border-color .15s; }
-  .card:hover { transform: translateY(-2px); } .card.sel { border-color: var(--accent); }
-  .card .media { aspect-ratio: 9/12; background: #000 center/cover no-repeat; } .card video { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .card .meta { padding: 8px 10px 10px; } .card .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card .s { font-size: 12px; color: var(--muted); }
-  .empty { color: var(--muted); font-size: 14px; padding: 14px 0; }
-  .tplhead { display: grid; grid-template-columns: 150px 1fr; gap: 14px; margin-bottom: 6px; }
-  .tplhead video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 9/12; object-fit: cover; }
-  .brief { font-size: 13px; color: var(--muted); display: grid; gap: 6px; align-content: start; } .brief b { color: var(--text); font-weight: 600; }
-  .fit { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line); }
-  .fit.good { color: var(--accent); border-color: #3d5214; } .fit.ok { color: #ffd24d; border-color: #6b5a1f; } .fit.poor { color: var(--warn); border-color: var(--warn); }
-  .persona { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-top: 12px; font-size: 13px; }
-  .persona .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 8px; color: var(--muted); } .persona .head b { color: var(--text); }
-  .strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .strip figure { margin: 0; font-size: 11px; color: var(--muted); text-align: center; }
-  .strip img, .strip .ph { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 8px; display: grid; place-items: center; margin-bottom: 3px; background: var(--bg); border: 1px dashed var(--line); }
-  .strip img { border: 0; }
-  .hybrid { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-top: 14px; }
-  .hybrid .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .hybrid figure { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
-  .hybrid img, .hybrid .ph { width: 100%; max-height: 460px; object-fit: contain; background: #000; border-radius: 10px; display: grid; place-items: center; margin-bottom: 4px; aspect-ratio: 9/16; }
-  .hybrid details { font-size: 12px; color: var(--muted); margin-top: 6px; } .hybrid details p { white-space: pre-wrap; margin: 6px 0 0; }
-  button.secondary { width: 100%; margin-top: 12px; background: transparent; color: var(--text); border: 1px solid var(--accent); }
-  .engines { display: grid; gap: 8px; }
-  .eng { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
-  .eng:has(input:checked) { border-color: var(--accent); background: #1c1f12; } .eng input { margin-top: 3px; accent-color: var(--accent); }
-  .eng b { display: block; font-size: 14px; } .eng span { font-size: 12px; color: var(--muted); } .eng .price { color: var(--text); font-weight: 600; }
-  .lblrow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; } .lblrow label { margin-bottom: 6px; }
-  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 18px; }
-  .res { border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-  .res h3 { margin: 0 0 8px; font-size: 14px; }
-  .res video { width: 100%; border-radius: 10px; background: #000; max-height: 520px; }
-  .res .row { font-size: 12px; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; } .res .row a { color: var(--accent); }
-  .res details { font-size: 12px; color: var(--muted); margin-top: 6px; } .res details p { white-space: pre-wrap; margin: 6px 0 0; }
-  .steps { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 5px; font-size: 13px; }
-  .steps li { color: var(--muted); display: flex; gap: 8px; align-items: center; }
-  .steps li::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; }
-  .steps li.on { color: var(--text); } .steps li.on::before { border-color: var(--accent); background: var(--accent); animation: pulse 1s infinite alternate; }
-  .steps li.ok { color: var(--text); } .steps li.ok::before { background: var(--accent); border-color: var(--accent); }
-  @keyframes pulse { to { opacity: .35; } }
-  .targetrow { display: flex; gap: 6px; } .targetrow input { flex: 1; padding: 6px 9px; font-size: 13px; }
-  .protect { font-size: 12px; color: var(--accent); }
-  .tile { display: grid; gap: 4px; } .tile button { padding: 4px 8px; font-size: 11px; }
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; z-index: 10; padding: 16px; }
-  .overlay[hidden] { display: none; }
-  .dialog { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; width: min(460px, 100%); }
-  .dialog video { width: 100%; max-height: 300px; border-radius: 10px; background: #000; margin: 8px 0; }
-  .dialog .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; } .dialog .btns button { margin: 0; }
-  .recent { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-  .recent video { width: 100%; border-radius: 10px; background: #000; aspect-ratio: 9/12; object-fit: cover; }
-  .warns { margin-top: 8px; font-size: 13px; color: #ffd24d; } .warns div::before { content: "⚠︎ "; }
-  .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: s .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
-  @keyframes s { to { transform: rotate(360deg); } }
+:root{--bg:#0f0f12;--panel:#17171c;--line:#2a2a33;--line2:#23232b;--text:#f2f1ee;--muted:#a3a2ab;--accent:#c6ff3d;--ink:#141a00;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100dvh}
+#app{max-width:480px;margin:0 auto;min-height:100dvh;padding:16px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:var(--accent)}
+h1{margin:0;font-size:28px;line-height:1.15;letter-spacing:-.02em;font-weight:800}
+.logo{font-size:30px;font-weight:900;letter-spacing:-.04em}.logo b{color:var(--accent)}
+.muted{color:var(--muted)}.small{font-size:13px}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;align-items:center;gap:10px}.grow{flex:1;min-width:0}
+.col{display:flex;flex-direction:column;gap:10px}
+.btn{height:56px;border-radius:16px;border:0;background:var(--accent);color:var(--ink);font-size:17px;font-weight:800;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.light{background:var(--text);color:var(--bg)}
+.btn.ghost{background:transparent;border:1px solid #3a3a44;color:var(--text)}
+.btn.sm{height:44px;border-radius:12px;font-size:14px}
+.icon{width:40px;height:40px;border-radius:12px;background:var(--panel);border:0;display:grid;place-items:center;flex:none;color:var(--text);text-decoration:none}
+.field{height:54px;border-radius:14px;border:1px solid var(--line);background:var(--panel);padding:0 16px;font-size:17px;width:100%;outline:none}
+.field:focus{border-color:var(--accent)}
+textarea.field{height:auto;min-height:84px;padding:14px 16px;resize:vertical;font-size:15px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
+.chip{height:36px;padding:0 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;text-decoration:none;color:var(--text)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.av{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;font-weight:800;color:#15151a;flex:none;border:2px solid var(--bg)}
+.avs{display:flex}.avs .av+.av{margin-left:-8px}
+.tpl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tpl{position:relative;border-radius:16px;overflow:hidden;background:var(--panel);aspect-ratio:9/12;border:0;padding:0;text-align:left}
+.tpl img{width:100%;height:100%;object-fit:cover;display:block}
+.tpl span{position:absolute;left:0;right:0;bottom:0;padding:28px 10px 10px;background:linear-gradient(transparent,#000c);font-size:14px;font-weight:700}
+.tpl.add{display:grid;place-items:center;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700}
+.faces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.face{border:2px solid transparent;background:var(--panel);border-radius:16px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;font-weight:700;position:relative}
+.face img,.face .ph{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#22222a;display:grid;place-items:center;color:var(--muted)}
+.face.sel{border-color:var(--accent)}
+.face.off{opacity:.55}
+.face em{font-style:normal;font-size:11px;color:var(--muted);font-weight:600;text-align:center}
+.media{width:100%;border-radius:18px;background:#000;display:block;max-height:56dvh;object-fit:contain}
+.feed-item{display:flex;flex-direction:column;gap:10px}
+.feed-item video{width:100%;border-radius:18px;background:#000;max-height:70dvh}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.split3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cooking{display:flex;gap:12px;align-items:center}
+.cooking img{width:56px;height:72px;border-radius:12px;object-fit:cover;flex:none;background:#22222a}
+.bar{height:6px;border-radius:3px;background:#2a2a33;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:3px;animation:slide 1.6s ease-in-out infinite;width:40%}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+.strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.strip a{flex:none;width:112px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:6px;font-size:12px}
+.strip img{width:112px;height:150px;border-radius:14px;object-fit:cover;background:#22222a}
+.like{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;gap:8px;padding:0 14px;font-weight:800}
+.like.on{border-color:var(--accent);color:var(--accent)}
+.act{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:14px}
+.act:last-child{border-bottom:0}
+.plus{color:var(--accent)}
+.empty{border:1.5px dashed var(--line);border-radius:18px;padding:28px 16px;text-align:center;color:var(--muted)}
+.spin{width:22px;height:22px;border-radius:50%;border:3px solid #2a2a33;border-top-color:var(--accent);animation:sp 0.9s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ph-frame{width:100%;aspect-ratio:9/14;border-radius:18px;background:var(--panel);display:grid;place-items:center;gap:10px;align-content:center;color:var(--muted)}
+.tabs{display:flex;gap:6px;background:var(--panel);padding:4px;border-radius:12px}
+.tabs button{flex:1;height:36px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-weight:700}
+.tabs button.on{background:#2a2a33;color:var(--text)}
+.sheet-bg{position:fixed;inset:0;background:#000a;display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{width:100%;max-width:480px;background:#141418;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px;max-height:92dvh;overflow:auto}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:#3a3a44;margin:0 auto 4px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 16px;border-radius:14px;font-weight:700;font-size:14px;z-index:30;max-width:90vw;text-align:center}
+.toast.bad{background:var(--bad);color:#fff}
+.code{font-family:ui-monospace,Menlo,monospace;letter-spacing:.3em;font-size:22px}
+.link-box{font-family:ui-monospace,Menlo,monospace;font-size:14px;word-break:break-all}
+.fab{margin-top:auto}
+[hidden]{display:none!important}
+.tpl .badge{position:absolute;top:8px;left:8px;padding:3px 8px;border-radius:999px;color:#141a00;font-style:normal;font-weight:900;font-size:12px}
+.tl{position:relative;height:64px;border-radius:12px;overflow:hidden;background:#22222a;touch-action:none;user-select:none}
+.tl-strip{position:absolute;inset:0;background-repeat:no-repeat}
+.tl-dim{position:absolute;top:0;bottom:0;background:#0f0f12b3;pointer-events:none}.tl-dim.l{left:0}.tl-dim.r{right:0}
+.tl-win{position:absolute;top:0;bottom:0;border:3px solid var(--accent);border-radius:12px;box-sizing:border-box;cursor:grab;touch-action:none}
+.tl-win .h{position:absolute;top:-3px;bottom:-3px;width:22px;background:var(--accent);touch-action:none;display:grid;place-items:center}
+.tl-win .h::after{content:'';width:3px;height:22px;border-radius:2px;background:#141a00}
+.tl-win .h.l{left:-3px;border-radius:12px 0 0 12px}.tl-win .h.r{right:-3px;border-radius:0 12px 12px 0}
+.tl-ph{position:absolute;top:0;bottom:0;width:2px;background:#fff;pointer-events:none}
+.ov{position:relative;height:16px;border-radius:8px;background:#22222a;touch-action:none}
+.ov i{position:absolute;top:3px;bottom:3px;background:var(--accent);border-radius:4px}
+.ov b{position:absolute;top:0;bottom:0;border:1.5px solid #f2f1ee88;border-radius:8px}
+.fr{margin:0;display:flex;flex-direction:column;gap:6px}.fr img{width:100%;height:132px;object-fit:contain;background:#000!important;border-radius:14px;background:#22222a}
+.fr figcaption{font-size:12px;color:var(--muted);font-weight:700}
+.ring{width:72px;height:72px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p)*1%),#2a2a33 0)}
+.ring b{width:58px;height:58px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-size:24px;font-weight:900}
 </style>
 </head>
 <body>
-<header><h1>twin<b>.</b> meme maker</h1><span id="modePill" class="pill">…</span></header>
-<main>
-  <section>
-    <h2><span class="n">1</span>New template</h2>
-    <p class="hint">A 3–10s clip with one clear main character (head and hands visible) works best.</p>
-    <form id="tplForm">
-      <div class="drop" id="vidDrop"><input type="file" name="video" accept="video/*" required />
-        <div id="vidPrompt"><strong>Drop a video</strong><br/>mp4 / mov</div></div>
-      <label>Title</label>
-      <input type="text" name="title" placeholder="e.g. Guy serving cake at a party" />
-      <label>What to keep <span style="opacity:.7">(optional, auto-written if blank)</span></label>
-      <textarea name="direction" placeholder="e.g. Keep his grey polo shirt and the tray of plates."></textarea>
-      <button class="primary" id="tplBtn" type="submit">Save template</button>
-      <div class="err" id="tplErr"></div>
-    </form>
-  </section>
-
-  <div class="right">
-    <section>
-      <h2><span class="n">2</span>Pick a template</h2>
-      <div class="grid" id="tplGrid"><div class="empty">No templates yet.</div></div>
-    </section>
-
-    <section id="makerSec" hidden>
-      <h2><span class="n">3</span>Make the meme</h2>
-      <div class="tplhead"><video id="tplVideo" muted loop autoplay playsinline></video><div class="brief" id="brief"></div></div>
-
-      <div class="drop" id="imgDrop" style="margin-top:12px"><input type="file" accept="image/*" />
-        <div id="imgPrompt"><strong>Drop your pet or friend</strong><br/>one clear face; for pets, front legs in view helps</div></div>
-      <div id="personaPanel"></div>
-
-      <div class="lblrow"><label>What to keep</label><button class="link" id="saveDefault" type="button">save as template default</button></div>
-      <textarea id="direction"></textarea>
-
-      <button class="secondary" id="hybridBtn" type="button" disabled>Create hybrid still</button>
-      <div id="hybridPanel"></div>
-
-      <label>Engine</label>
-      <div class="engines">
-        <label class="eng"><input type="radio" name="engine" value="kling" checked /><div><b>Kling O3 edit <span class="price" data-e="kling"></span></b><span>Edits the clip to match the hybrid still.</span></div></label>
-        <label class="eng"><input type="radio" name="engine" value="seedance" /><div><b>Seedance 2.5 <span class="price" data-e="seedance"></span></b><span>What the viral "Cat Human" template uses. Also gets the clean face close-up.</span></div></label>
-        <label class="eng"><input type="radio" name="engine" value="compare" /><div><b>Compare both <span class="price" data-e="compare"></span></b><span>Run both side by side to learn which suits this template.</span></div></label>
-      </div>
-      <button class="primary" id="makeBtn" type="button" disabled>Make meme</button>
-      <div class="err" id="makeErr"></div>
-      <div class="results" id="results"></div>
-    </section>
-
-    <section>
-      <h2>Recent memes</h2>
-      <div class="recent" id="recent"><div class="empty">Nothing yet.</div></div>
-    </section>
-  </div>
-</main>
-
-<div class="overlay" id="remixDlg" hidden>
-  <div class="dialog">
-    <h2>Remix this meme</h2>
-    <p class="hint" style="margin:4px 0 0">Turns this video into a new template. Only the area around who you pick changes; everything else stays exactly as it is.</p>
-    <video id="remixVid" muted loop autoplay playsinline></video>
-    <label style="margin-top:4px">Who should be replaced?</label>
-    <input type="text" id="remixTarget" placeholder="e.g. the tabby cat on his lap" />
-    <div class="err" id="remixErr"></div>
-    <div class="btns"><button class="ghost" type="button" id="remixCancel" style="padding:12px">Cancel</button><button class="primary" type="button" id="remixGo">Create remix template</button></div>
-  </div>
-</div>
-
+<div id="app"></div>
 <script>
-const $ = (s) => document.querySelector(s);
+// ======================================================================
+// bloop mobile app: rooms, consent, pooled wallet. Talks to /api/rooms/*.
+// Routes: /  ·  /r/<slug>  ·  /r/<slug>#pick | #who/<tpl> | #frame/<hybrid> | #result/<render> | #wallet
+// ======================================================================
+const $app = document.getElementById('app');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const PAGE_API_VERSION = 6;
-const STALE_MSG = 'The app server is running old code. In its Terminal window press Ctrl+C, then double-click start.command again.';
-let templates = [], selected = null, persona = null, hybrid = null, active = []; // active = render ids in flight
-
-async function api(url, opts) {
-  const res = await fetch(url, opts);
-  const j = await res.json().catch(() => ({}));
-  if (res.status === 404 && !j.error) throw new Error(STALE_MSG);
-  if (!res.ok) throw new Error(j.error || res.statusText);
-  return j;
-}
-const jsonOpts = (method, body) => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-
-function dropPreview(input, slot, kind) {
-  input.addEventListener('change', () => {
-    const f = input.files[0]; if (!f) return;
-    const url = URL.createObjectURL(f);
-    slot.innerHTML = kind === 'video' ? `<video src="${url}" muted autoplay loop playsinline></video>` : `<img src="${url}" alt="">`;
-  });
-  const d = input.parentElement;
-  ['dragenter', 'dragover'].forEach((e) => d.addEventListener(e, () => d.classList.add('over')));
-  ['dragleave', 'drop'].forEach((e) => d.addEventListener(e, () => d.classList.remove('over')));
-}
-dropPreview($('#vidDrop input'), $('#vidPrompt'), 'video');
-dropPreview($('#imgDrop input'), $('#imgPrompt'), 'image');
-
-async function loadSettings() {
-  const s = await api('/api/settings'), p = $('#modePill');
-  if ((s.api_version || 0) < PAGE_API_VERSION) { p.textContent = '⚠︎ restart the app server'; p.className = 'pill mock'; p.title = STALE_MSG; alert(STALE_MSG); return; }
-  if (s.mock) { p.textContent = 'MOCK mode · no fal calls'; p.className = 'pill mock'; }
-  else if (!s.has_key) { p.textContent = 'FAL_KEY missing (see .env)'; p.className = 'pill mock'; }
-  else { p.textContent = 'live · fal'; p.className = 'pill live'; }
-}
-
-// ---------- templates ----------
-let tplTimer = null;
-async function loadTemplates() {
-  templates = await api('/api/templates');
-  if (selected) { selected = templates.find((t) => t.id === selected.id) || null; renderBrief(); }
-  renderGrid();
-  clearTimeout(tplTimer);
-  if (templates.some((t) => t.analyzing)) tplTimer = setTimeout(loadTemplates, 2000);
-}
-function renderGrid() {
-  const g = $('#tplGrid');
-  if (!templates.length) { g.innerHTML = '<div class="empty">No templates yet. Make one on the left.</div>'; return; }
-  g.innerHTML = '';
-  for (const t of templates) {
-    const c = document.createElement('div');
-    c.className = 'card' + (selected?.id === t.id ? ' sel' : '');
-    c.innerHTML = `<div class="media" style="background-image:url('${t.thumb_url}')"></div>
-      <div class="meta"><div class="t" title="${esc(t.title)}">${esc(t.title)}</div><div class="s">${t.duration_s}s · ${t.renders} made</div></div>`;
-    const m = c.querySelector('.media');
-    c.onmouseenter = () => { m.innerHTML = `<video src="${t.clip_url}" muted autoplay loop playsinline></video>`; };
-    c.onmouseleave = () => { m.innerHTML = ''; };
-    c.onclick = () => selectTemplate(t);
-    g.appendChild(c);
-  }
-}
-function selectTemplate(t) {
-  const changed = selected?.id !== t.id;
-  selected = t;
-  $('#makerSec').hidden = false;
-  if (changed) { $('#tplVideo').src = t.clip_url; $('#direction').value = t.brief?.direction || ''; $('#results').innerHTML = ''; hybrid = null; renderHybrid(); }
-  renderBrief(); renderGrid(); updateMake();
-  $('#makerSec').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-function renderBrief() {
-  const t = selected; if (!t) return;
-  if (document.activeElement?.id === 'targetInput') return; // don't wipe what the user is typing
-  const b = t.brief || {};
-  if (!$('#direction').value && b.direction) $('#direction').value = b.direction;
-  $('#brief').innerHTML = `
-    <div><b>${esc(t.title)}</b> · ${t.duration_s}s</div>
-    <div>Gets replaced:${t.analyzing ? ' <b><span class="spin"></span>analyzing…</b>' : ''}</div>
-    <div class="targetrow"><input type="text" id="targetInput" value="${esc(b.main_subject || '')}" placeholder="the main character" ${t.analyzing ? 'disabled' : ''} /><button class="ghost" id="targetSave" type="button" ${t.analyzing ? 'disabled' : ''}>Change</button></div>
-    ${t.protect ? '<div class="protect">🛡 Remix: everything outside this character stays exactly as in the original</div>' : ''}
-    ${b.keep?.length ? `<div>Keeps: ${b.keep.map(esc).join(', ')}</div>` : ''}
-    ${b.fit ? `<div><span class="fit ${b.fit}">${b.fit === 'good' ? 'good template' : b.fit === 'ok' ? 'ok template' : 'risky template'}</span> ${esc(b.fit_reason || '')}</div>` : ''}
-    ${b.error ? `<div class="warns"><div>Analysis failed: ${esc(b.error)}</div></div>` : ''}
-    <div><button class="ghost" id="reanalyze" type="button" ${t.analyzing ? 'disabled' : ''}>Re-analyze</button></div>`;
-  $('#targetSave').onclick = async () => {
-    const v = $('#targetInput').value.trim(); if (!v) return;
-    try { await api(`/api/templates/${t.id}`, jsonOpts('PATCH', { main_subject: v })); $('#direction').value = ''; hybrid = null; renderHybrid(); await loadTemplates(); }
-    catch (err) { $('#makeErr').textContent = err.message; }
-  };
-  $('#reanalyze').onclick = async () => {
-    $('#reanalyze').disabled = true;
-    try { const nt = api(`/api/templates/${t.id}/analyze`, { method: 'POST' }); selected.analyzing = true; renderBrief(); await nt; $('#direction').value = ''; await loadTemplates(); }
-    catch (err) { $('#makeErr').textContent = err.message; }
-  };
-}
-$('#tplForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = $('#tplBtn'); $('#tplErr').textContent = '';
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Preparing clip…';
-  try {
-    const t = await api('/api/templates', { method: 'POST', body: new FormData(e.target) });
-    e.target.reset(); $('#vidPrompt').innerHTML = '<strong>Drop a video</strong><br/>mp4 / mov';
-    await loadTemplates(); selectTemplate(templates.find((x) => x.id === t.id) || t);
-  } catch (err) { $('#tplErr').textContent = err.message; }
-  finally { btn.disabled = false; btn.textContent = 'Save template'; }
-});
-$('#saveDefault').addEventListener('click', async () => {
-  if (!selected) return;
-  try { await api(`/api/templates/${selected.id}`, jsonOpts('PATCH', { direction: $('#direction').value })); await loadTemplates(); $('#saveDefault').textContent = 'saved ✓'; setTimeout(() => ($('#saveDefault').textContent = 'save as template default'), 1500); }
-  catch (err) { $('#makeErr').textContent = err.message; }
-});
-
-// ---------- persona ----------
-let personaTimer = null;
-const PSTATUS = { queued: 'queued…', checking: 'checking the photo…', cleaning: 'cleaning up (removing hats, glasses, background)…', angles: 'generating other angles…', done: 'ready', failed: 'failed' };
-$('#imgDrop input').addEventListener('change', async (e) => {
-  const f = e.target.files[0]; if (!f) return;
-  const fd = new FormData(); fd.append('image', f); $('#makeErr').textContent = '';
-  hybrid = null; renderHybrid();
-  try { persona = await api('/api/personas', { method: 'POST', body: fd }); renderPersona(); pollPersona(); }
-  catch (err) { $('#makeErr').textContent = err.message; }
-});
-function pollPersona() {
-  clearTimeout(personaTimer);
-  personaTimer = setTimeout(async () => {
-    persona = await api(`/api/personas/${persona.id}`).catch(() => persona);
-    renderPersona();
-    if (!['done', 'failed'].includes(persona.status)) pollPersona();
-  }, 1500);
-}
-function renderPersona() {
-  const p = persona, el = $('#personaPanel');
-  if (!p) { el.innerHTML = ''; updateMake(); return; }
-  const busy = !['done', 'failed'].includes(p.status);
-  const fig = (url, label) => `<figure>${url ? `<img src="${url}" alt="">` : `<div class="ph">${busy ? '<span class="spin" style="color:var(--muted)"></span>' : '–'}</div>`}${label}</figure>`;
-  const names = ['¾ view', 'side', '¾ other side'];
-  el.innerHTML = `<div class="persona">
-    <div class="head"><b>Persona</b><span>${PSTATUS[p.status] || p.status}${p.subject_check?.description ? ` · ${esc(p.subject_check.description)}` : ''}${p.status === 'done' && p.cost_usd ? ` · $${p.cost_usd.toFixed(2)}` : ''}</span>
-      ${busy ? '' : '<button class="ghost" id="rebuild" type="button">Rebuild</button>'}</div>
-    <div class="strip">${fig(p.original_url, 'photo')}${fig(p.clean_url, 'cleaned')}${[0, 1, 2].map((i) => fig(p.angles[i]?.url, p.angles[i]?.label || names[i])).join('')}</div>
-    ${p.error ? `<div class="err">${esc(p.error)}</div>` : ''}
-    ${p.warnings?.length ? `<div class="warns">${p.warnings.map((w) => `<div>${esc(w)}</div>`).join('')}</div>` : ''}
-  </div>`;
-  const rb = $('#rebuild');
-  if (rb) rb.onclick = async () => { persona = await api(`/api/personas/${p.id}/rebuild`, { method: 'POST' }); renderPersona(); pollPersona(); };
-  updateMake();
-}
-
-// ---------- hybrid still ----------
-let hybridTimer = null;
-const HSTATUS = { analyzing: 'analyzing the template first…', queued: 'queued…', generating: 'generating the hybrid (~20–40s)…', done: 'ready: check it before making the video', failed: 'failed' };
-$('#hybridBtn').addEventListener('click', async () => {
-  $('#makeErr').textContent = '';
-  try {
-    hybrid = await api('/api/hybrids', jsonOpts('POST', { template_id: selected.id, persona_id: persona.id, direction: $('#direction').value }));
-    renderHybrid(); pollHybrid();
-  } catch (err) { $('#makeErr').textContent = err.message; }
-});
-function pollHybrid() {
-  clearTimeout(hybridTimer);
-  hybridTimer = setTimeout(async () => {
-    hybrid = await api(`/api/hybrids/${hybrid.id}`).catch(() => hybrid);
-    renderHybrid();
-    if (!['done', 'failed'].includes(hybrid.status)) pollHybrid(); else loadTemplates();
-  }, 1500);
-}
-function renderHybrid() {
-  const el = $('#hybridPanel');
-  if (!hybrid) { el.innerHTML = ''; updateMake(); return; }
-  const h = hybrid, busy = !['done', 'failed'].includes(h.status);
-  el.innerHTML = `<div class="hybrid">
-    <div style="font-size:13px;color:var(--muted);margin-bottom:8px"><b style="color:var(--text)">Hybrid still</b> · ${HSTATUS[h.status] || h.status}${h.status === 'done' && h.cost_usd ? ` · $${h.cost_usd.toFixed(2)}` : ''}</div>
-    <div class="pair">
-      <figure><img src="${selected.frame_url}" alt="">original frame</figure>
-      <figure>${h.image_url ? `<img src="${h.image_url}?v=${h.id}" alt="">` : `<div class="ph">${busy ? '<span class="spin" style="color:var(--muted)"></span>' : '–'}</div>`}hybrid: the video will copy this</figure>
-    </div>
-    ${h.error ? `<div class="err">${esc(h.error)}</div>` : ''}
-    ${h.status === 'done' ? '<div style="font-size:12px;color:var(--muted);margin-top:6px">Not right? Edit "What to keep" above and press Try again.</div>' : ''}
-    ${h.prompt ? `<details><summary>prompt sent</summary><p>${esc(h.prompt)}</p></details>` : ''}
-  </div>`;
-  updateMake();
-}
-
-// ---------- make ----------
-const engineVal = () => document.querySelector('input[name=engine]:checked').value;
-function updateMake() {
-  if (!selected) return;
-  const c = selected.est_cost, price = { kling: c.kling, seedance: c.seedance, compare: c.kling + c.seedance };
-  document.querySelectorAll('.price').forEach((el) => (el.textContent = `· ~$${price[el.dataset.e].toFixed(2)}`));
-  const hb = $('#hybridBtn'), hBusy = hybrid && !['done', 'failed'].includes(hybrid.status);
-  const personaReady = persona && persona.status === 'done';
-  hb.disabled = !personaReady || hBusy || active.length > 0;
-  hb.innerHTML = hBusy ? '<span class="spin"></span>Creating hybrid still…' : `${hybrid ? 'Try again' : 'Create hybrid still'} (~$${(selected.hybrid_cost || 0.15).toFixed(2)})`;
-  const b = $('#makeBtn');
-  if (active.length) return;
-  const ready = hybrid && hybrid.status === 'done';
-  b.disabled = !ready;
-  b.textContent = !persona ? 'Add a photo first' : !personaReady ? 'Building persona…' : !ready ? 'Create the hybrid still first' : `Make meme (~$${price[engineVal()].toFixed(2)})`;
-}
-document.querySelectorAll('input[name=engine]').forEach((x) => x.addEventListener('change', updateMake));
-
-$('#makeBtn').addEventListener('click', async () => {
-  $('#makeErr').textContent = '';
-  try {
-    const rs = await api('/api/renders', jsonOpts('POST', { template_id: selected.id, hybrid_id: hybrid.id, engine: engineVal(), direction: $('#direction').value }));
-    active = rs.map((r) => r.id);
-    $('#makeBtn').disabled = true; $('#hybridBtn').disabled = true; $('#makeBtn').innerHTML = '<span class="spin"></span>Cooking… (usually 2–8 min)';
-    $('#results').innerHTML = rs.map((r) => `<div class="res" id="res-${r.id}"></div>`).join('');
-    rs.forEach(drawResult); pollRenders();
-  } catch (err) { $('#makeErr').textContent = err.message; }
-});
-let renderTimer = null;
-function pollRenders() {
-  clearTimeout(renderTimer);
-  renderTimer = setTimeout(async () => {
-    const rs = await Promise.all(active.map((id) => api(`/api/renders/${id}`).catch(() => null)));
-    rs.filter(Boolean).forEach(drawResult);
-    active = rs.filter((r) => r && !['done', 'failed'].includes(r.status)).map((r) => r.id);
-    if (active.length) pollRenders(); else { updateMake(); loadTemplates(); loadRecent(); }
-  }, 2500);
-}
-function drawResult(r) {
-  const el = $(`#res-${r.id}`); if (!el) return;
-  const idx = (r.plan || []).findIndex(([k]) => k === r.status);
-  const steps = (r.plan || []).map(([k, l], i) => `<li class="${r.status === 'done' || (idx > -1 && i < idx) ? 'ok' : i === idx ? 'on' : ''}">${l}${k === 'generating' && r.status === 'generating' && r.queue_position != null ? ` (queue #${r.queue_position})` : ''}</li>`).join('');
-  const key = r.status + (r.output_url || '') + (r.queue_position ?? '');
-  if (el.dataset.key === key) return; el.dataset.key = key;
-  el.innerHTML = `<h3>${esc(r.engine_name)}</h3>
-    ${r.status === 'done' ? `<video src="${r.output_url}" controls autoplay loop playsinline></video>
-      <div class="row"><a href="${r.output_url}" download="meme-${r.id}.mp4">Download</a><span>${r.latency_s}s · ${r.cost_usd ? '$' + r.cost_usd.toFixed(2) : 'mock, $0'}</span>
-        ${r.protect?.full_url ? `<a href="${r.protect.full_url}" target="_blank">unprotected render</a>` : ''}</div>
-      ${r.protect?.error ? `<div class="warns"><div>Couldn't protect the rest of the frame (${esc(r.protect.error)}): showing the full render.</div></div>` : ''}
-      <button class="secondary" type="button" onclick="openRemix('${r.id}', '${r.output_url}')">Remix this meme</button>`
-      : `<ul class="steps">${steps}</ul>`}
-    ${r.status === 'failed' ? `<div class="err">${esc(r.error)}</div>` : ''}
-    ${r.prompt ? `<details><summary>prompt sent</summary><p>${esc(r.prompt)}</p></details>` : ''}`;
-}
-
-async function loadRecent() {
-  const rs = await api('/api/renders'), el = $('#recent');
-  el.innerHTML = rs.length ? rs.map((r) => `<div class="tile"><a href="${r.output_url}" target="_blank" title="${esc(r.engine_name)}"><video src="${r.output_url}#t=0.5" preload="metadata" muted loop playsinline onmouseenter="this.play()" onmouseleave="this.pause()"></video></a>
-    <button class="ghost" type="button" onclick="openRemix('${r.id}', '${r.output_url}')">Remix</button></div>`).join('') : '<div class="empty">Nothing yet.</div>';
-}
-
-// ---------- remix ----------
-let remixId = null;
-function openRemix(id, url) {
-  remixId = id; $('#remixVid').src = url; $('#remixTarget').value = ''; $('#remixErr').textContent = '';
-  $('#remixDlg').hidden = false; setTimeout(() => $('#remixTarget').focus(), 50);
-}
-$('#remixCancel').onclick = () => { $('#remixDlg').hidden = true; $('#remixVid').removeAttribute('src'); };
-$('#remixGo').onclick = async () => {
-  const target = $('#remixTarget').value.trim();
-  if (!target) { $('#remixErr').textContent = 'Say who to replace, e.g. "the tabby cat on his lap".'; return; }
-  const b = $('#remixGo'); b.disabled = true; b.innerHTML = '<span class="spin"></span>Creating…';
-  try {
-    const t = await api(`/api/renders/${remixId}/remix`, jsonOpts('POST', { target }));
-    $('#remixDlg').hidden = true; $('#remixVid').removeAttribute('src');
-    await loadTemplates(); selectTemplate(templates.find((x) => x.id === t.id) || t);
-  } catch (err) { $('#remixErr').textContent = err.message; }
-  finally { b.disabled = false; b.textContent = 'Create remix template'; }
+const money = (c) => `${c < 0 ? '−' : ''}$${(Math.abs(c) / 100).toFixed(2)}`;
+const moneyShort = (c) => (c % 100 === 0 ? `$${c / 100}` : money(c));
+const ago = (iso) => { const s = Math.max(0, (Date.now() - new Date(iso)) / 1000); return s < 60 ? `${Math.round(s)}s` : s < 3600 ? `${Math.floor(s / 60)}m` : s < 86400 ? `${Math.floor(s / 3600)}h` : `${Math.floor(s / 86400)}d`; };
+const store = {
+  get(k, d = null) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+const mem = {}; // fallback when storage is blocked
+const tokenFor = (slug) => store.get(`bloop:tok:${slug}`) || mem[slug] || null;
+const saveToken = (slug, token, name) => {
+  mem[slug] = token; store.set(`bloop:tok:${slug}`, token);
+  const rooms = store.get('bloop:rooms', []).filter((r) => r.slug !== slug);
+  rooms.unshift({ slug, name }); store.set('bloop:rooms', rooms.slice(0, 20));
+};
+const ICON = {
+  back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>',
+  share: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v13M7 8l5-5 5 5M5 14v6h14v-6"/></svg>',
+  heart: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.4 3.2 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5 18.8 5 21 8.4 19.5 11.8 17.5 16.4 12 21 12 21z"/></svg>',
+  search: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>',
 };
 
-loadSettings(); loadTemplates(); loadRecent();
+function toast(msg, bad = false) {
+  document.querySelector('.toast')?.remove();
+  const t = document.createElement('div'); t.className = `toast${bad ? ' bad' : ''}`; t.textContent = msg;
+  document.body.append(t); setTimeout(() => t.remove(), 3200);
+}
+
+class ApiError extends Error { constructor(msg, status, body) { super(msg); this.status = status; this.body = body; } }
+async function api(method, url, body) {
+  const headers = {}; const tok = R.slug && tokenFor(R.slug);
+  if (tok) headers['x-bloop-member'] = tok;
+  let payload;
+  if (body instanceof FormData) payload = body;
+  else if (body !== undefined) { headers['content-type'] = 'application/json'; payload = JSON.stringify(body); }
+  const res = await fetch(url, { method, headers, body: payload });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(data.error || `Request failed (${res.status})`, res.status, data);
+  return data;
+}
+
+// ======================================================================
+// Router + state
+// ======================================================================
+const R = { slug: null, state: null, poll: null, view: null, templates: null };
+function route() {
+  cfg();
+  const m = location.pathname.match(/^\/r\/([^/]+)/);
+  R.slug = m ? decodeURIComponent(m[1]) : null;
+  closeSheet();
+  if (!R.slug) return viewStart();
+  if (!tokenFor(R.slug)) return viewJoin();
+  render();
+}
+window.addEventListener('popstate', route);
+window.addEventListener('hashchange', () => { closeSheet(); render(); });
+const go = (hash) => { location.hash = hash; };
+const roomUrl = (slug = R.slug) => `${location.origin}/r/${encodeURIComponent(slug)}`;
+
+async function load() {
+  try { R.state = await api('GET', `/api/rooms/${R.slug}`); }
+  catch (e) {
+    if (e.status === 401 || e.status === 404) { store.del(`bloop:tok:${R.slug}`); delete mem[R.slug]; if (e.status === 404) { history.replaceState(null, '', '/'); } return route(); }
+    throw e;
+  }
+}
+function startPolling() {
+  clearInterval(R.poll);
+  R.poll = setInterval(async () => {
+    if (!R.slug || !tokenFor(R.slug) || document.hidden) return;
+    try { await load(); live(); } catch {}
+  }, 2500);
+}
+// Re-render views without text inputs; views with inputs refresh only their live parts.
+function live() {
+  const v = R.view;
+  if (document.querySelector('.sheet')) return refreshSheet?.();
+  if (['home', 'frame', 'result', 'wallet'].includes(v)) render(true);
+  if (v === 'who') paintFaces();
+  if (v === 'check' && R.templates?.[location.hash.split('/')[1]]?.analyzing !== false) refreshCheck();
+}
+
+async function render(fromPoll = false) {
+  if (!fromPoll) { if (!R.state || R.state.room.slug !== R.slug) { $app.innerHTML = '<div class="ph-frame" style="aspect-ratio:auto;height:60dvh"><span class="spin"></span></div>'; } try { await load(); } catch (e) { return toast(e.message, true); } if (!R.state) return; startPolling(); }
+  const [name, arg, arg2] = (location.hash.slice(1) || 'home').split('/');
+  const keepScroll = fromPoll ? scrollY : 0;
+  ({ home: viewHome, pick: viewPick, trim: viewTrim, check: viewCheck, who: viewWho, frame: viewFrame, result: viewResult, wallet: viewWallet }[name] || viewHome)(arg, fromPoll, arg2);
+  if (fromPoll) scrollTo(0, keepScroll); else scrollTo(0, 0);
+}
+
+// ----- helpers over state -----
+const S = () => R.state;
+const member = (id) => S().members.find((m) => m.id === id);
+const memberName = (id) => (id === S().me.id ? 'You' : member(id)?.name || 'Someone');
+const avatar = (m, size = 28) => `<span class="av" style="background:${m?.color || '#ddd'};width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px">${esc((m?.name || '?')[0].toUpperCase())}</span>`;
+const faceImg = (f) => f?.persona?.clean_url || f?.persona?.original_url;
+const header = (title, back = '#home', right = '') => `<header class="row"><a class="icon" href="${back}" aria-label="Back">${ICON.back}</a><span class="grow" style="font-size:18px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</span>${right}</header>`;
+const walletChip = () => `<a class="chip" href="#wallet" aria-label="Pool balance"><i></i>${money(S().room.balance_cents)}</a>`;
+const busy = (btn, on, label) => { if (!btn) return; if (on) { btn.dataset.label = btn.innerHTML; btn.innerHTML = `<span class="spin"></span>${label ? ` ${esc(label)}` : ''}`; btn.disabled = true; } else { btn.innerHTML = btn.dataset.label || btn.innerHTML; btn.disabled = false; } };
+
+// Runs an action; handles the room-level errors in one place.
+async function act(btn, fn, label) {
+  busy(btn, true, label);
+  try { return await fn(); }
+  catch (e) {
+    const code = e.body?.code;
+    if (code === 'low_balance') { toast(e.message, true); go('wallet'); return; }
+    toast(e.message, true);
+  } finally { busy(btn, false); }
+}
+
+// ======================================================================
+// Start: create a room (+ rooms I'm in)
+// ======================================================================
+let CFG = null;
+const cfg = async () => (CFG ||= await fetch('/api/settings').then((r) => r.json()).catch(() => ({})));
+async function viewStart() {
+  clearInterval(R.poll); R.state = null;
+  const c = await cfg();
+  const mine = store.get('bloop:rooms', []);
+  $app.innerHTML = `
+    <div class="logo" style="margin-top:20px">bloop<b>.</b></div>
+    <h1>Start a room</h1>
+    <div class="col">
+      <input id="roomName" class="field" placeholder="Group chat name" maxlength="40" autocomplete="off">
+      <input id="myName" class="field" placeholder="Your name" maxlength="30" autocomplete="given-name" value="${esc(store.get('bloop:name', ''))}">
+      ${c.access_code ? `<input id="code" class="field" placeholder="Access code" maxlength="40" autocomplete="off" autocapitalize="off" value="${esc(store.get('bloop:code', ''))}">` : ''}
+    </div>
+    <button id="create" class="btn">Create room</button>
+    ${mine.length ? `<div class="col" style="margin-top:12px"><span class="label">Your rooms</span>${mine.map((r) => `<a class="card row" style="text-decoration:none;color:var(--text);font-weight:700" href="/r/${encodeURIComponent(r.slug)}">${esc(r.name)}<span class="grow"></span><span class="muted">›</span></a>`).join('')}</div>` : ''}`;
+  $app.querySelectorAll('a[href^="/r/"]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); history.pushState(null, '', a.getAttribute('href')); route(); }));
+  const btn = $app.querySelector('#create');
+  btn.onclick = async () => {
+    const name = $app.querySelector('#roomName').value.trim(); const me = $app.querySelector('#myName').value.trim();
+    if (!name) return toast('Name your room', true);
+    if (!me) return toast('Add your name', true);
+    store.set('bloop:name', me);
+    busy(btn, true);
+    try {
+      const code = $app.querySelector('#code')?.value.trim();
+      if (c.access_code && !code) { busy(btn, false); return toast('Add your access code', true); }
+      if (code) store.set('bloop:code', code);
+      const r = await api('POST', '/api/rooms', { name, creator_name: me, access_code: code });
+      saveToken(r.room.slug, r.token, r.room.name);
+      history.pushState(null, '', `/r/${r.room.slug}`); R.slug = r.room.slug; R.state = r;
+      inviteSheet(true);
+      render();
+    } catch (e) { toast(e.message, true); busy(btn, false); }
+  };
+}
+
+// ======================================================================
+// Join (from the invite link): name only
+// ======================================================================
+async function viewJoin() {
+  clearInterval(R.poll); R.state = null;
+  $app.innerHTML = '<div class="ph-frame" style="aspect-ratio:auto;height:60dvh"><span class="spin"></span></div>';
+  let p;
+  try { p = await api('GET', `/api/rooms/${R.slug}/preview`); }
+  catch { $app.innerHTML = `<div class="logo" style="margin-top:20px">bloop<b>.</b></div><h1>This room doesn’t exist</h1><a class="btn" href="/">Start a room</a>`; return; }
+  $app.innerHTML = `
+    <div class="logo" style="margin-top:20px">bloop<b>.</b></div>
+    <div class="col" style="gap:14px">
+      <div class="avs">${p.members.slice(0, 6).map((m) => avatar(m, 44)).join('')}</div>
+      <h1>${p.invited_by ? `${esc(p.invited_by)} invited you to ` : 'Join '}${esc(p.name)}</h1>
+    </div>
+    ${p.recent.length ? `<div class="strip">${p.recent.map((r) => `<a><img src="${esc(r.thumb_url)}" alt=""></a>`).join('')}</div>` : ''}
+    <input id="name" class="field" placeholder="Your name" maxlength="30" autocomplete="given-name" value="${esc(store.get('bloop:name', ''))}">
+    <button id="join" class="btn">Join ${esc(p.name)}</button>`;
+  const btn = $app.querySelector('#join');
+  btn.onclick = async () => {
+    const name = $app.querySelector('#name').value.trim();
+    if (!name) return toast('Add your name', true);
+    store.set('bloop:name', name); busy(btn, true);
+    try { const r = await api('POST', `/api/rooms/${R.slug}/join`, { name }); saveToken(R.slug, r.token, r.room.name); R.state = r; render(); }
+    catch (e) { toast(e.message, true); busy(btn, false); }
+  };
+}
+
+// ======================================================================
+// Room home
+// ======================================================================
+const STEP = { queued: 'In line', uploading: 'Uploading', generating: 'Cooking', compositing: 'Finishing', finishing: 'Finishing', analyzing: 'Reading the template' };
+function renderStatus(r) {
+  if (r.queue_position != null && r.queue_position > 0 && !r.started_at) return `#${r.queue_position} in line`;
+  return STEP[r.status] || 'Cooking';
+}
+function viewHome() {
+  R.view = 'home';
+  const s = S(); const me = s.me;
+  const cooking = s.renders.filter((r) => !['done', 'failed', 'preview_ready'].includes(r.status));
+  const done = s.renders.filter((r) => r.status === 'done' && r.output_url);
+  const used = new Set(s.renders.map((r) => r.hybrid_id));
+  const drafts = s.drafts.filter((h) => !used.has(h.id) && h.status !== 'failed');
+  const asks = s.faces.filter((f) => f.kind === 'member' && f.status === 'pending' && f.subject_member_id === me.id);
+  $app.innerHTML = `
+    <header class="row">
+      <div class="grow col" style="gap:4px"><span style="font-size:22px;font-weight:900;letter-spacing:-.02em">${esc(s.room.name)}</span>
+        <button class="avs" id="people" style="background:none;border:0;padding:0" aria-label="Invite">${s.members.slice(0, 7).map((m) => avatar(m)).join('')}<span class="av" style="background:var(--panel);color:var(--text);border-color:var(--bg)">+</span></button></div>
+      ${walletChip()}
+    </header>
+    ${asks.map((f) => `
+      <section class="card col" style="gap:12px">
+        <div class="row">${faceImg(f) ? `<img src="${esc(faceImg(f))}" alt="" style="width:56px;height:56px;border-radius:50%;object-fit:cover">` : avatar(member(f.added_by), 56)}
+          <div class="col" style="gap:2px"><b style="font-size:15px">${esc(memberName(f.added_by))} added a photo of you</b><span class="small muted">Can ${esc(s.room.name)} use your face?</span></div></div>
+        <div class="split"><button class="btn ghost sm" data-decide="${f.id}" data-yes="0">Not me / no</button><button class="btn light sm" data-decide="${f.id}" data-yes="1">Yes, in ${esc(s.room.name)}</button></div>
+      </section>`).join('')}
+    <a class="btn" href="#pick">Make a meme</a>
+    ${cooking.map((r) => `
+      <a class="card col" href="#result/${r.id}" style="text-decoration:none;color:var(--text);gap:10px">
+        <div class="cooking"><img src="${esc(r.hybrid?.image_url || r.template?.thumb_url || '')}" alt="">
+          <div class="grow col" style="gap:4px"><b>${esc(r.template?.title || 'Meme')}</b><span class="small muted">${esc(memberName(r.created_by))} · ${renderStatus(r)} · ${ago(r.created_at)}</span></div></div>
+        <div class="bar"><i></i></div>
+      </a>`).join('')}
+    ${drafts.length ? `<section class="col"><span class="label">Frame 1</span><div class="strip">${drafts.map((h) => `
+      <a href="#frame/${h.id}">${h.status === 'done' ? `<img src="${esc(h.image_url)}" alt="">` : `<div class="ph-frame" style="width:112px;height:150px;aspect-ratio:auto"><span class="spin"></span></div>`}
+        <span class="row" style="gap:6px"><b class="grow" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h.face?.label || '')}</b>${h.likes.length ? `<span class="plus">♥ ${h.likes.length}</span>` : ''}</span></a>`).join('')}</div></section>` : ''}
+    <section class="col" style="gap:22px">
+      ${done.length ? done.map((r) => `
+        <article class="feed-item">
+          <video src="${esc(r.output_url)}" poster="${esc(r.hybrid?.image_url || '')}" playsinline controls loop preload="metadata"></video>
+          <div class="row">${avatar(member(r.created_by))}<span class="grow small"><b>${esc(memberName(r.created_by))}</b> <span class="muted">· ${esc(r.template?.title || '')} · ${ago(r.created_at)}</span></span></div>
+          <div class="split"><button class="btn ghost sm" data-remix="${r.id}">Remix</button><button class="btn light sm" data-share="${r.id}">${ICON.share} Share</button></div>
+        </article>`).join('') : `<div class="empty">No memes yet</div>`}
+    </section>`;
+  $app.querySelector('#people').onclick = () => inviteSheet();
+  $app.querySelectorAll('[data-decide]').forEach((b) => b.onclick = () => act(b, async () => {
+    R.state = await api('POST', `/api/rooms/${R.slug}/faces/${b.dataset.decide}/decide`, { approve: b.dataset.yes === '1' });
+    toast(b.dataset.yes === '1' ? 'Approved' : 'Declined'); render(true);
+  }));
+  $app.querySelectorAll('[data-share]').forEach((b) => b.onclick = () => shareRender(s.renders.find((r) => r.id === b.dataset.share), b));
+  $app.querySelectorAll('[data-remix]').forEach((b) => b.onclick = () => remixSheet(b.dataset.remix));
+}
+
+// ======================================================================
+// Pick a template
+// ======================================================================
+async function viewPick() {
+  R.view = 'pick';
+  $app.innerHTML = `
+    ${header('Pick a template')}
+    <label class="row field" style="gap:10px">${ICON.search}<input id="q" class="grow" style="background:none;border:0;outline:none;height:100%;font-size:16px" placeholder="Search or paste a link" autocomplete="off" enterkeyhint="search"></label>
+    <div class="split"><button class="btn ghost sm" id="up">Upload a video</button><button class="btn ghost sm" id="link">Paste a link</button></div>
+    <div class="tpl-grid" id="grid"><div class="ph-frame" style="grid-column:1/-1;aspect-ratio:auto;height:200px"><span class="spin"></span></div></div>
+    <input id="vid" type="file" accept="video/*" hidden>`;
+  const q = $app.querySelector('#q'); const grid = $app.querySelector('#grid'); const vid = $app.querySelector('#vid');
+  let timer; let seq = 0;
+  const search = async () => {
+    const n = ++seq;
+    try {
+      const rows = await api('GET', `/api/rooms/${R.slug}/templates?q=${encodeURIComponent(q.value.trim())}`);
+      if (n !== seq) return;
+      R.templates = Object.fromEntries([...Object.entries(R.templates || {}), ...rows.map((t) => [t.id, t])]);
+      grid.innerHTML = rows.map((t) => `<button class="tpl" data-t="${t.id}"><img src="${esc(t.thumb_url)}" alt="" loading="lazy">${scoreBadge(t.usability)}<span>${esc(t.title)}</span></button>`).join('') +
+        (rows.length || !q.value.trim() ? '' : `<div class="empty" style="grid-column:1/-1">Nothing for “${esc(q.value)}”</div>`);
+      grid.querySelectorAll('[data-t]').forEach((b) => b.onclick = () => go(`check/${b.dataset.t}`));
+    } catch (e) { toast(e.message, true); }
+  };
+  q.oninput = () => {
+    const v = q.value.trim();
+    if (/^https?:\/\/\S+$/i.test(v) || /^(www\.|[\w-]+\.(com|be|tv|net|org|app)\/)\S+$/i.test(v)) { q.value = ''; return linkSheet(v); }
+    clearTimeout(timer); timer = setTimeout(search, 220);
+  };
+  $app.querySelector('#up').onclick = () => vid.click();
+  $app.querySelector('#link').onclick = () => linkSheet('');
+  vid.onchange = async () => {
+    const f = vid.files[0]; if (!f) return;
+    const fd = new FormData(); fd.append('video', f); fd.append('title', f.name.replace(/\.[^.]+$/, '').slice(0, 60));
+    toast('Uploading…');
+    const up = $app.querySelector('#up'); busy(up, true);
+    try { const src = await api('POST', `/api/rooms/${R.slug}/sources`, fd); go(`trim/${src.id}`); }
+    catch (e) { toast(e.message, true); busy(up, false); }
+  };
+  search();
+}
+
+// Link → trimmer (TikTok, YouTube, Instagram, X, Reddit…). The server grabs 2 minutes from the start time.
+function linkSheet(prefill) {
+  openSheet(`
+    <h2 style="margin:0;font-size:22px">Paste a link</h2>
+    <div class="row" style="gap:8px"><input id="u" class="field grow" type="url" inputmode="url" placeholder="https://…" value="${esc(prefill)}" autocomplete="off">
+      ${navigator.clipboard?.readText ? '<button class="btn ghost sm" id="paste" style="width:auto;padding:0 14px">Paste</button>' : ''}</div>
+    <div class="col" style="gap:8px"><label class="small muted" for="st">Start at</label><input id="st" class="field" inputmode="numeric" placeholder="0:00" maxlength="8"></div>
+    <button class="btn" id="ok">Get the video</button>`, (el) => {
+    const u = el.querySelector('#u'); const st = el.querySelector('#st'); const ok = el.querySelector('#ok');
+    if (!prefill) u.focus();
+    el.querySelector('#paste')?.addEventListener('click', async () => { try { u.value = (await navigator.clipboard.readText()).trim(); } catch { toast('Couldn’t read the clipboard', true); } });
+    ok.onclick = () => act(ok, async () => {
+      let url = u.value.trim(); if (!url) throw new Error('Paste a link');
+      if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+      const src = await api('POST', `/api/rooms/${R.slug}/sources/link`, { url, start: st.value.trim() || undefined });
+      closeSheet(); go(`trim/${src.id}`);
+    }, 'Grabbing the clip…');
+  });
+}
+
+async function getTemplate(id) {
+  if (R.templates?.[id]) return R.templates[id];
+  for (const scope of ['', 'room']) {
+    const rows = await api('GET', `/api/rooms/${R.slug}/templates${scope ? `?scope=${scope}` : ''}`);
+    R.templates = Object.fromEntries([...Object.entries(R.templates || {}), ...rows.map((t) => [t.id, t])]);
+    if (R.templates[id]) return R.templates[id];
+  }
+  return null;
+}
+
+// ======================================================================
+// Trim: pick start/end on a longer video (upload or link), see first/last frame
+// ======================================================================
+const fmtT = (s) => { s = Math.max(0, s); const m = Math.floor(s / 60); const r = s - m * 60; return `${m}:${r < 10 ? '0' : ''}${r.toFixed(1)}`; };
+async function viewTrim(srcId, fromPoll, replaces) {
+  R.view = 'trim';
+  let src, prev = null;
+  try {
+    src = await api('GET', `/api/rooms/${R.slug}/sources/${srcId}`);
+    if (replaces) prev = await api('GET', `/api/rooms/${R.slug}/templates/${replaces}`).catch(() => null);
+  } catch (e) { toast(e.message, true); return go('pick'); }
+  const dur = src.duration_s, MIN = src.min_s, MAX = src.max_s;
+  const sel = prev?.source_trim ? { ...prev.source_trim } : { start: 0, end: Math.min(dur, MAX) };
+  const span = Math.min(dur, 30); let vs = 0; // zoomed viewport [vs, vs + span]
+  const frameUrl = (t) => `/api/rooms/${R.slug}/sources/${src.id}/frame?t=${(Math.round(t * 10) / 10).toFixed(1)}`;
+  $app.innerHTML = `
+    ${header(src.title, '#pick')}
+    <video id="pv" class="media" style="max-height:42dvh" src="${esc(src.preview_url)}" playsinline muted autoplay preload="auto"></video>
+    <div class="row"><b id="len" style="font-size:18px"></b><span class="small muted" id="rng"></span><span class="grow"></span>
+      <button class="icon" id="snd" aria-label="Sound">🔇</button><button class="icon" id="play" aria-label="Play">❚❚</button></div>
+    ${dur > span ? `<div class="ov" id="ov"><i id="ovSel"></i><b id="ovView"></b></div>` : ''}
+    <div class="tl" id="tl"><div class="tl-strip" id="strip"></div><div class="tl-dim l" id="dimL"></div><div class="tl-dim r" id="dimR"></div>
+      <div class="tl-win" id="win"><span class="h l" id="hl"></span><span class="h r" id="hr"></span></div><i class="tl-ph" id="ph"></i></div>
+    <div class="split"><figure class="fr"><img id="f1" alt=""><figcaption>First frame</figcaption></figure><figure class="fr"><img id="f2" alt=""><figcaption>Last frame</figcaption></figure></div>
+    <button class="btn" id="ok">Check this template</button>`;
+  const v = $app.querySelector('#pv'), tl = $app.querySelector('#tl'), strip = $app.querySelector('#strip');
+  const win = $app.querySelector('#win'), ph = $app.querySelector('#ph');
+  const f1 = $app.querySelector('#f1'), f2 = $app.querySelector('#f2');
+  strip.style.backgroundImage = `url('${src.strip_url}')`;
+  const W = () => tl.clientWidth;
+  const x = (t) => ((t - vs) / span) * W();
+  const keepInView = () => {
+    if (sel.start < vs) vs = Math.max(0, sel.start - 1);
+    if (sel.end > vs + span) vs = Math.min(dur - span, sel.end - span + 1);
+    vs = Math.max(0, Math.min(dur - span, vs));
+  };
+  const paint = () => {
+    if (!tl.isConnected) return;
+    keepInView();
+    const w = W(), total = (w * dur) / span;
+    strip.style.backgroundSize = `${total}px 100%`; strip.style.backgroundPosition = `${-(vs / span) * w}px 0`;
+    win.style.left = `${x(sel.start)}px`; win.style.width = `${x(sel.end) - x(sel.start)}px`;
+    $app.querySelector('#dimL').style.width = `${Math.max(0, x(sel.start))}px`;
+    $app.querySelector('#dimR').style.left = `${x(sel.end)}px`;
+    $app.querySelector('#len').textContent = `${(sel.end - sel.start).toFixed(1)}s`;
+    $app.querySelector('#rng').textContent = `${fmtT(sel.start + src.offset_s)} – ${fmtT(sel.end + src.offset_s)}`;
+    const ov = $app.querySelector('#ov');
+    if (ov) { const k = ov.clientWidth / dur; Object.assign($app.querySelector('#ovSel').style, { left: `${sel.start * k}px`, width: `${Math.max(3, (sel.end - sel.start) * k)}px` }); Object.assign($app.querySelector('#ovView').style, { left: `${vs * k}px`, width: `${span * k}px` }); }
+  };
+  let fTimer;
+  const frames = () => { clearTimeout(fTimer); fTimer = setTimeout(() => { f1.src = frameUrl(sel.start); f2.src = frameUrl(Math.max(sel.start, sel.end - 0.1)); }, 120); };
+  // Loop playback inside the selection.
+  let raf; const loop = () => {
+    if (!v.paused && (v.currentTime >= sel.end - 0.04 || v.currentTime < sel.start - 0.25)) v.currentTime = sel.start;
+    ph.style.left = `${x(v.currentTime)}px`; ph.hidden = v.currentTime < vs || v.currentTime > vs + span;
+    if (R.view === 'trim' && v.isConnected) raf = requestAnimationFrame(loop); else v.pause();
+  };
+  v.addEventListener('loadedmetadata', () => { v.currentTime = sel.start; v.play().catch(() => {}); });
+  const playBtn = $app.querySelector('#play');
+  v.onplay = () => (playBtn.textContent = '❚❚'); v.onpause = () => (playBtn.textContent = '▶');
+  playBtn.onclick = () => { if (v.paused) { if (v.currentTime >= sel.end - 0.05) v.currentTime = sel.start; v.play(); } else v.pause(); };
+  $app.querySelector('#snd').onclick = (e) => { v.muted = !v.muted; e.currentTarget.textContent = v.muted ? '🔇' : '🔊'; if (v.paused) v.play(); };
+  // Drag: left handle, right handle, or the whole window.
+  const drag = (el, mode) => el.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); e.stopPropagation(); el.setPointerCapture(e.pointerId);
+    const x0 = e.clientX, s0 = { ...sel }; const wasPlaying = !v.paused; v.pause();
+    const move = (ev) => {
+      const dt = ((ev.clientX - x0) / W()) * span;
+      if (mode === 'l') sel.start = Math.max(0, Math.max(s0.end - MAX, Math.min(s0.start + dt, s0.end - MIN)));
+      else if (mode === 'r') sel.end = Math.min(dur, Math.min(s0.start + MAX, Math.max(s0.end + dt, s0.start + MIN)));
+      else { const len = s0.end - s0.start; sel.start = Math.max(0, Math.min(dur - len, s0.start + dt)); sel.end = sel.start + len; }
+      v.currentTime = mode === 'r' ? sel.end - 0.05 : sel.start;
+      paint();
+    };
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); v.currentTime = sel.start; if (wasPlaying || mode !== 'r') v.play().catch(() => {}); frames(); };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  });
+  drag($app.querySelector('#hl'), 'l'); drag($app.querySelector('#hr'), 'r'); drag(win, 'move');
+  // Tap the strip outside the window: move the window there.
+  tl.addEventListener('pointerdown', (e) => {
+    if (e.target !== tl && !e.target.classList.contains('tl-strip') && !e.target.classList.contains('tl-dim')) return;
+    const t = vs + ((e.clientX - tl.getBoundingClientRect().left) / W()) * span; const len = sel.end - sel.start;
+    sel.start = Math.max(0, Math.min(dur - len, t - len / 2)); sel.end = sel.start + len; v.currentTime = sel.start; paint(); frames();
+  });
+  // Overview (long videos): drag to jump anywhere.
+  const ov = $app.querySelector('#ov');
+  if (ov) {
+    const jump = (e) => { const t = ((e.clientX - ov.getBoundingClientRect().left) / ov.clientWidth) * dur; const len = sel.end - sel.start; sel.start = Math.max(0, Math.min(dur - len, t - len / 2)); sel.end = sel.start + len; vs = Math.max(0, Math.min(dur - span, sel.start - (span - len) / 2)); v.currentTime = sel.start; paint(); };
+    ov.addEventListener('pointerdown', (e) => { ov.setPointerCapture(e.pointerId); jump(e); const mv = (ev) => jump(ev); const end = () => { ov.removeEventListener('pointermove', mv); frames(); }; ov.addEventListener('pointermove', mv); ov.addEventListener('pointerup', end, { once: true }); });
+  }
+  window.addEventListener('resize', paint);
+  paint(); frames(); raf = requestAnimationFrame(loop);
+  const ok = $app.querySelector('#ok');
+  ok.onclick = () => act(ok, async () => {
+    v.pause();
+    const t = await api('POST', `/api/rooms/${R.slug}/sources/${src.id}/template`, { start: +sel.start.toFixed(2), end: +sel.end.toFixed(2), replaces: replaces || undefined });
+    (R.templates ||= {})[t.id] = t; go(`check/${t.id}`);
+  }, 'Making it…');
+}
+
+// ======================================================================
+// Template check: usability score before anyone picks a face
+// ======================================================================
+const scoreTone = (n) => (n >= 80 ? 'var(--accent)' : n >= 60 ? '#c6ff3d99' : n >= 40 ? '#ffc53d' : 'var(--bad)');
+const scoreBadge = (u) => (u?.status === 'done' ? `<em class="badge" style="background:${scoreTone(u.score)}">${u.score}</em>` : '');
+const CHECK_ICON = { ok: '<b style="color:var(--accent)">✓</b>', warn: '<b style="color:#ffc53d">!</b>', bad: '<b style="color:var(--bad)">✕</b>' };
+async function viewCheck(id) {
+  R.view = 'check';
+  let t;
+  try { t = await api('GET', `/api/rooms/${R.slug}/templates/${id}`); } catch (e) { toast(e.message, true); return go('pick'); }
+  (R.templates ||= {})[t.id] = t;
+  $app.innerHTML = `
+    ${header(t.title, '#pick')}
+    <video class="media" src="${esc(t.clip_url)}" poster="${esc(t.frame_url)}" playsinline muted autoplay loop></video>
+    <section class="card col" id="score" style="gap:12px"></section>
+    <section class="card col" id="brief" style="gap:10px"></section>
+    <div class="col fab" style="gap:8px"><button class="btn" id="use">Use this template</button>
+      ${t.source_id && t.made_here ? `<a class="btn ghost sm" href="#trim/${t.source_id}/${t.id}">Re-trim</a>` : ''}</div>`;
+  paintCheck(t);
+  $app.querySelector('#use').onclick = () => go(`who/${t.id}`);
+}
+async function refreshCheck() {
+  const id = location.hash.split('/')[1];
+  try { const t = await api('GET', `/api/rooms/${R.slug}/templates/${id}`); R.templates[t.id] = t; if (R.view === 'check') paintCheck(t); } catch {}
+}
+function paintCheck(t) {
+  const box = $app.querySelector('#score'); if (!box) return;
+  const u = t.usability || {};
+  box.innerHTML = u.status === 'done'
+    ? `<div class="row" style="gap:14px"><div class="ring" style="--p:${u.score};--c:${scoreTone(u.score)}"><b>${u.score}</b></div>
+         <div class="col" style="gap:2px"><b style="font-size:20px">${esc(u.label)}</b>${t.analyzing ? '<span class="small muted">Still checking…</span>' : ''}</div></div>
+       <div class="col" style="gap:8px">${u.checks.map((c) => `<div class="row small" style="gap:10px">${CHECK_ICON[c.state]}<span>${esc(c.label)}</span></div>`).join('')}</div>
+       ${u.tip ? `<span class="small muted">${esc(u.tip)}</span>` : ''}`
+    : `<div class="row"><span class="spin"></span><b>Checking the template…</b></div>`;
+  const b = t.brief || {};
+  const bb = $app.querySelector('#brief');
+  bb.innerHTML = `
+    <div class="row"><span class="grow col" style="gap:2px"><span class="label">Gets swapped</span><span>${b.main_subject ? esc(b.main_subject) : '<span class="muted">…</span>'}</span></span>
+      ${t.made_here ? '<button class="btn ghost sm" id="chg" style="width:auto;padding:0 14px">Change</button>' : ''}</div>
+    ${b.keep?.length ? `<div class="col" style="gap:6px"><span class="label">Kept</span><div class="row" style="flex-wrap:wrap;gap:6px">${b.keep.map((k) => `<span class="chip" style="height:30px;font-weight:600;font-size:13px">${esc(k)}</span>`).join('')}</div></div>` : ''}`;
+  bb.querySelector('#chg')?.addEventListener('click', () => openSheet(`
+    <h2 style="margin:0;font-size:22px">Who gets swapped?</h2>
+    <input id="ms" class="field" maxlength="200" value="${esc(b.main_subject || '')}">
+    <button class="btn" id="ok">Save</button>`, (el) => {
+    el.querySelector('#ms').focus();
+    el.querySelector('#ok').onclick = (e) => act(e.currentTarget, async () => {
+      const nt = await api('PATCH', `/api/rooms/${R.slug}/templates/${t.id}`, { main_subject: el.querySelector('#ms').value });
+      closeSheet(); R.templates[nt.id] = { ...t, ...nt }; paintCheck({ ...t, ...nt });
+    });
+  }));
+}
+
+// ======================================================================
+// Who's going in
+// ======================================================================
+let picked = null, userPicked = false;
+async function viewWho(tplId) {
+  R.view = 'who'; userPicked = false;
+  const t = await getTemplate(tplId).catch(() => null);
+  if (!t) { toast('Template not found', true); return go('pick'); }
+  $app.innerHTML = `
+    ${header('Who’s going in?', `#check/${t.id}`)}
+    <a class="row card" href="#check/${t.id}" style="padding:10px;text-decoration:none;color:var(--text)"><img src="${esc(t.thumb_url)}" alt="" style="width:56px;height:72px;border-radius:10px;object-fit:cover"><b class="grow">${esc(t.title)}</b>${t.usability?.status === 'done' ? `<span class="chip" style="color:${scoreTone(t.usability.score)}">${t.usability.score} · ${esc(t.usability.label)}</span>` : ''}</a>
+    <div class="faces" id="faces"></div>
+    <div class="split"><button class="btn ghost sm" id="selfie">Take a selfie</button><button class="btn ghost sm" id="addSomeone">Add someone</button></div>
+    <textarea id="note" class="field" placeholder="Note (optional)" maxlength="300"></textarea>
+    <button class="btn fab" id="go" disabled>Make frame 1</button>
+    <input id="selfieFile" type="file" accept="image/*" capture="user" hidden>`;
+  paintFaces();
+  const file = $app.querySelector('#selfieFile');
+  $app.querySelector('#selfie').onclick = () => file.click();
+  file.onchange = () => file.files[0] && uploadFace(file.files[0], { kind: 'self' }, $app.querySelector('#selfie'));
+  $app.querySelector('#addSomeone').onclick = () => addSomeoneSheet();
+  const btn = $app.querySelector('#go');
+  btn.onclick = () => act(btn, async () => {
+    const h = await api('POST', `/api/rooms/${R.slug}/hybrids`, { template_id: t.id, face_id: picked, notes: $app.querySelector('#note').value });
+    await load(); go(`frame/${h.id}`);
+  });
+}
+function faceState(f) {
+  const p = f.persona;
+  if (f.status === 'pending') return `Waiting for ${f.label}`;
+  if (!p || p.status === 'failed') return 'Photo didn’t work';
+  if (p.status !== 'done') return 'Getting ready…';
+  return '';
+}
+function paintFaces() {
+  const box = $app.querySelector('#faces'); if (!box) return;
+  const faces = S().faces;
+  if (picked && !faces.some((f) => f.id === picked && !faceState(f))) picked = null;
+  // Nothing chosen yet: preselect my selfie, else the newest ready face.
+  if (!picked && !userPicked) { const ready = faces.filter((f) => !faceState(f)); picked = (ready.find((f) => f.kind === 'self' && f.added_by === S().me.id) || ready[ready.length - 1])?.id || null; }
+  box.innerHTML = faces.length ? faces.map((f) => {
+    const st = faceState(f); const img = faceImg(f);
+    return `<button class="face${picked === f.id ? ' sel' : ''}${st ? ' off' : ''}" data-f="${f.id}">${img ? `<img src="${esc(img)}" alt="">` : '<div class="ph"><span class="spin"></span></div>'}<span>${esc(f.kind === 'self' && f.added_by === S().me.id ? 'You' : f.label)}</span>${st ? `<em>${esc(st)}</em>` : ''}</button>`;
+  }).join('') : `<div class="empty" style="grid-column:1/-1">No faces yet</div>`;
+  box.querySelectorAll('[data-f]').forEach((b) => b.onclick = () => {
+    const f = faces.find((x) => x.id === b.dataset.f); const st = faceState(f);
+    if (st) { toast(st); return; }
+    picked = picked === f.id ? null : f.id; userPicked = true; paintFaces();
+  });
+  const go1 = $app.querySelector('#go');
+  if (go1 && !go1.querySelector('.spin')) {
+    go1.disabled = !picked;
+    const name = faces.find((f) => f.id === picked);
+    go1.textContent = picked ? `Make frame 1 with ${name.kind === 'self' && name.added_by === S().me.id ? 'you' : name.label}` : faces.some((f) => !faceState(f)) ? 'Tap a face' : faces.length ? 'Getting faces ready…' : 'Add a face first';
+  }
+}
+async function uploadFace(file, fields, btn) {
+  const fd = new FormData(); fd.append('image', file);
+  for (const [k, v] of Object.entries(fields)) fd.append(k, v);
+  return act(btn, async () => {
+    const f = await api('POST', `/api/rooms/${R.slug}/faces`, fd);
+    await load(); if (f.status === 'approved') picked = f.id;
+    closeSheet(); paintFaces();
+    if (f.status === 'pending') toast(`Sent to ${f.label} to approve`);
+  });
+}
+function addSomeoneSheet() {
+  const others = S().members.filter((m) => m.id !== S().me.id);
+  openSheet(`
+    <h2 style="margin:0;font-size:22px">Add someone</h2>
+    <div class="faces">${others.map((m) => `<button class="face" data-m="${m.id}">${avatar(m, 56)}<span>${esc(m.name)}</span></button>`).join('')}
+      <button class="face" data-pet="1"><div class="ph" style="font-size:28px">🐾</div><span>A pet</span></button></div>
+    <div id="petBox" class="col" hidden><input id="petName" class="field" placeholder="Pet’s name" maxlength="30"></div>
+    <button class="btn ghost" id="invite">Not here? Invite them</button>
+    <input id="f" type="file" accept="image/*" hidden>`, (el) => {
+    const file = el.querySelector('#f'); let fields = null; let btn = null;
+    el.querySelectorAll('[data-m]').forEach((b) => b.onclick = () => { fields = { kind: 'member', subject_member_id: b.dataset.m }; btn = b; file.click(); });
+    el.querySelector('[data-pet]').onclick = (e) => {
+      const box = el.querySelector('#petBox'); const name = el.querySelector('#petName');
+      if (box.hidden) { box.hidden = false; name.focus(); return; }
+      fields = { kind: 'pet', label: name.value.trim() || 'Pet' }; btn = e.currentTarget; file.click();
+    };
+    el.querySelector('#petName').onkeydown = (e) => { if (e.key === 'Enter') el.querySelector('[data-pet]').click(); };
+    el.querySelector('#invite').onclick = () => { closeSheet(); inviteSheet(); };
+    file.onchange = () => file.files[0] && uploadFace(file.files[0], fields, btn);
+  });
+}
+
+// ======================================================================
+// Frame 1 (the hybrid still): room likes, try again, tweak, make video
+// ======================================================================
+function viewFrame(id) {
+  R.view = 'frame';
+  const s = S(); const h = s.drafts.find((x) => x.id === id);
+  if (!h) { $app.innerHTML = `${header('Frame 1')}<div class="empty">This draft is gone</div>`; return; }
+  const price = h.template?.price_cents ?? 0;
+  const liked = h.likes.includes(s.me.id);
+  const r = s.renders.find((x) => x.hybrid_id === h.id);
+  const limit = s.room.daily_limit; const left = limit ? Math.max(0, limit - s.me.renders_today) : null;
+  $app.innerHTML = `
+    ${header(h.template?.title || 'Frame 1', '#home', walletChip())}
+    ${h.status === 'done' ? `<img class="media" src="${esc(h.image_url)}" alt="Frame 1">`
+      : h.status === 'failed' ? `<div class="ph-frame"><b style="color:var(--text)">That didn’t work</b><span class="small" style="padding:0 24px;text-align:center">${esc(h.error || '')}</span></div>`
+      : `<div class="ph-frame"><span class="spin"></span><span>${h.status === 'analyzing' ? 'Reading the template…' : 'Making frame 1…'}</span><span class="small">${ago(h.created_at)}</span></div>`}
+    <div class="row">${avatar(member(h.created_by))}<span class="grow small"><b>${esc(memberName(h.created_by))}</b> <span class="muted">· ${esc(h.face?.label || '')}${h.notes ? ` · “${esc(h.notes)}”` : ''}</span></span>
+      <button class="like${liked ? ' on' : ''}" id="like">${ICON.heart}${h.likes.length || ''}</button></div>
+    ${h.likes.length ? `<div class="row small muted"><span class="avs">${h.likes.map((m) => avatar(member(m), 22)).join('')}</span>${h.likes.map(memberName).join(', ')}</div>` : ''}
+    <div class="split"><button class="btn ghost sm" id="again" ${['done', 'failed'].includes(h.status) ? '' : 'disabled'}>Try again</button><button class="btn ghost sm" id="tweak" ${['done', 'failed'].includes(h.status) ? '' : 'disabled'}>Tweak</button></div>
+    ${r ? `<a class="btn fab" href="#result/${r.id}">See the video</a>`
+      : `<div class="col fab" style="gap:8px"><button class="btn" id="make" ${h.status === 'done' && left !== 0 ? '' : 'disabled'}>Make video · ${moneyShort(price)}</button>
+         <span class="small muted" style="text-align:center">${left === 0 ? 'Daily limit reached' : `From ${esc(s.room.name)}’s pool${left != null ? ` · ${left} left today` : ''}`}</span></div>`}`;
+  $app.querySelector('#like').onclick = (e) => act(e.currentTarget, async () => { R.state = await api('POST', `/api/rooms/${R.slug}/hybrids/${h.id}/like`); render(true); });
+  const redo = (btn, notes) => act(btn, async () => {
+    const n = await api('POST', `/api/rooms/${R.slug}/hybrids`, { template_id: h.template_id, face_id: h.face_id, notes });
+    await load(); closeSheet(); go(`frame/${n.id}`);
+  });
+  $app.querySelector('#again').onclick = (e) => redo(e.currentTarget, h.notes || '');
+  $app.querySelector('#tweak').onclick = () => openSheet(`
+    <h2 style="margin:0;font-size:22px">Tweak</h2>
+    <textarea id="n" class="field" maxlength="300" placeholder="e.g. bigger ears, keep the sunglasses">${esc(h.notes || '')}</textarea>
+    <button class="btn" id="ok">Make frame 1</button>`, (el) => { el.querySelector('#n').focus(); el.querySelector('#ok').onclick = (e) => redo(e.currentTarget, el.querySelector('#n').value); });
+  $app.querySelector('#make')?.addEventListener('click', (e) => act(e.currentTarget, async () => {
+    const rr = await api('POST', `/api/rooms/${R.slug}/renders`, { hybrid_id: h.id });
+    await load(); go(`result/${rr.id}`);
+  }));
+}
+
+// ======================================================================
+// Result + share
+// ======================================================================
+const ENGINE_NAME = { kling: 'Kling O3', seedance: 'Seedance 2.5' };
+const ENGINE_ORDER = ['seedance', 'kling'];
+function viewResult(id) {
+  R.view = 'result';
+  const s = S(); const r = s.renders.find((x) => x.id === id);
+  if (!r) { $app.innerHTML = `${header('Meme')}<div class="empty">Not found</div>`; return; }
+  const doneV = r.status === 'done' && r.output_url;
+  const started = r.started_at ? ` · ${ago(r.started_at)} in` : '';
+  $app.innerHTML = `
+    ${header(r.template?.title || 'Meme')}
+    ${doneV ? `<video class="media" src="${esc(r.output_url)}" playsinline controls autoplay loop></video>`
+      : r.status === 'failed' ? `<div class="ph-frame" style="aspect-ratio:auto;padding:28px 0"><b style="color:var(--text)">That one failed</b><span class="small" style="padding:0 24px;text-align:center">${esc(r.error || '')}</span>${r.refunded ? `<span class="plus small">${money(r.price_cents)} back in the pool</span>` : ''}</div>`
+      : `<div class="ph-frame" style="background:center/cover no-repeat url('${esc(r.hybrid?.image_url || '')}')"><div class="card col" style="background:#0f0f12e6;align-items:center;gap:8px;min-width:200px"><span class="spin"></span><b>${renderStatus(r)}</b><span class="small muted">${ago(r.created_at)}${started}</span><div class="bar" style="width:100%"><i></i></div></div></div>`}
+    <div class="row">${avatar(member(r.created_by))}<span class="grow small"><b>${esc(memberName(r.created_by))}</b> <span class="muted">· ${esc(r.face?.label || '')} · ${esc(ENGINE_NAME[r.engine] || '')} · ${r.price_cents ? money(r.price_cents) : ''}</span></span></div>
+    ${doneV ? `<div class="col fab" style="gap:8px"><button class="btn" id="share">${ICON.share} Send to the chat</button><div class="split"><button class="btn ghost sm" id="remix">Remix</button><a class="btn ghost sm" href="#pick">Make another</a></div></div>`
+      : r.status === 'failed' ? `<div class="col fab" style="gap:8px"><span class="label">Try another model</span>
+          ${[...ENGINE_ORDER].sort((a, b) => (a === r.engine) - (b === r.engine)).map((e) => `<button class="btn${e === r.engine ? ' ghost' : ''}" data-engine="${e}">${e === r.engine ? `Retry ${ENGINE_NAME[e]}` : ENGINE_NAME[e]} · ${moneyShort(r.template?.prices?.[e] ?? 0)}</button>`).join('')}
+          <a class="btn ghost sm" href="#frame/${r.hybrid_id}">Back to frame 1</a></div>` : ''}`;
+  $app.querySelectorAll('[data-engine]').forEach((b) => b.onclick = () => act(b, async () => {
+    const rr = await api('POST', `/api/rooms/${R.slug}/renders`, { hybrid_id: r.hybrid_id, engine: b.dataset.engine });
+    await load(); go(`result/${rr.id}`);
+  }));
+  $app.querySelector('#share')?.addEventListener('click', (e) => shareRender(r, e.currentTarget));
+  $app.querySelector('#remix')?.addEventListener('click', () => remixSheet(r.id));
+}
+
+async function shareRender(r, btn) {
+  if (!r?.output_url) return;
+  busy(btn, true);
+  try {
+    const blob = await (await fetch(r.output_url)).blob();
+    const file = new File([blob], `bloop-${(r.template?.title || 'meme').replace(/[^\w-]+/g, '-').toLowerCase()}.mp4`, { type: 'video/mp4' });
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); }
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Saved. Drop it in the chat'); }
+  } catch (e) { if (e.name !== 'AbortError') toast('Couldn’t share that', true); }
+  finally { busy(btn, false); }
+}
+
+function remixSheet(renderId) {
+  openSheet(`
+    <h2 style="margin:0;font-size:22px">Remix</h2>
+    <input id="t" class="field" placeholder="Who gets swapped? e.g. the tabby cat" maxlength="200">
+    <button class="btn" id="ok">Next</button>`, (el) => {
+    const t = el.querySelector('#t'); t.focus();
+    el.querySelector('#ok').onclick = (e) => act(e.currentTarget, async () => {
+      if (!t.value.trim()) throw new Error('Say who gets swapped');
+      const tpl = await api('POST', `/api/rooms/${R.slug}/renders/${renderId}/remix`, { target: t.value.trim() });
+      (R.templates ||= {})[tpl.id] = tpl; closeSheet(); go(`check/${tpl.id}`);
+    });
+  });
+}
+
+// ======================================================================
+// Wallet
+// ======================================================================
+function viewWallet() {
+  R.view = 'wallet';
+  const s = S(); const limit = s.room.daily_limit;
+  const kindText = (l) => ({ topup: `${memberName(l.member_id)} added`, trial: 'Free trial', render: `${memberName(l.member_id)} made “${l.note || 'a meme'}”`, refund: 'Refund · render failed' }[l.kind] || l.note || l.kind);
+  $app.innerHTML = `
+    ${header(`${s.room.name}’s pool`)}
+    <section class="card col" style="gap:14px;padding:18px">
+      <div class="col" style="gap:4px"><span class="small muted">Balance</span><span style="font-size:44px;font-weight:800;letter-spacing:-.03em">${money(s.room.balance_cents)}</span></div>
+      ${CFG?.test_topups === false ? '' : `<div class="split3">${[500, 1000, 2000].map((c) => `<button class="btn sm" data-top="${c}">+ ${moneyShort(c)}</button>`).join('')}</div>`}
+    </section>
+    <section class="col"><span class="label">Chipped in</span>
+      <div class="strip">${s.contributions.map((c) => `<div class="card col" style="flex:none;min-width:96px;gap:2px;padding:10px"><span class="small muted">${esc(memberName(c.member_id))}</span><b style="font-size:18px">${moneyShort(c.cents)}</b></div>`).join('')}</div></section>
+    <section class="col" style="gap:0"><span class="label" style="margin-bottom:6px">Activity</span>
+      ${s.ledger.length ? s.ledger.map((l) => `<div class="act"><span>${esc(kindText(l))}</span><span class="${l.amount_cents > 0 ? 'plus' : 'muted'}" style="white-space:nowrap">${l.amount_cents > 0 ? '+' : ''}${money(l.amount_cents)}</span></div>`).join('') : '<span class="muted small">Nothing yet</span>'}</section>
+    <section class="card row" style="padding:12px 14px">
+      <span class="grow col" style="gap:2px"><b style="font-size:14px">Daily limit per person</b><span class="small muted">${limit ? `${limit} meme${limit === 1 ? '' : 's'} a day each` : 'Off'}</span></span>
+      <button class="icon" data-lim="-1" aria-label="Fewer">−</button><b style="min-width:20px;text-align:center">${limit || '∞'}</b><button class="icon" data-lim="1" aria-label="More">+</button>
+    </section>`;
+  $app.querySelectorAll('[data-top]').forEach((b) => b.onclick = () => act(b, async () => {
+    R.state = await api('POST', `/api/rooms/${R.slug}/topup`, { amount_cents: Number(b.dataset.top) });
+    toast(`Added ${moneyShort(Number(b.dataset.top))}`); render(true);
+  }));
+  $app.querySelectorAll('[data-lim]').forEach((b) => b.onclick = () => act(b, async () => {
+    const next = Math.max(0, Math.min(20, (limit || 0) + Number(b.dataset.lim)));
+    R.state = await api('PATCH', `/api/rooms/${R.slug}`, { daily_limit: next }); render(true);
+  }));
+}
+
+// ======================================================================
+// Sheets: invite
+// ======================================================================
+let refreshSheet = null;
+function openSheet(html, mount) {
+  closeSheet();
+  const bg = document.createElement('div'); bg.className = 'sheet-bg';
+  bg.innerHTML = `<div class="sheet" role="dialog"><div class="grab"></div>${html}</div>`;
+  bg.onclick = (e) => { if (e.target === bg) closeSheet(); };
+  document.body.append(bg); mount?.(bg.querySelector('.sheet'));
+}
+function closeSheet() { document.querySelector('.sheet-bg')?.remove(); refreshSheet = null; }
+
+function inviteSheet(fresh = false) {
+  const url = roomUrl(); const name = S()?.room.name || 'the room';
+  openSheet(`
+    <h2 style="margin:0;font-size:24px">${fresh ? `${esc(name)} is ready` : `Invite to ${esc(name)}`}</h2>
+    <div class="card link-box">${esc(url)}</div>
+    <div class="split"><button class="btn ghost sm" id="copy">Copy link</button><button class="btn sm" id="send">${ICON.share} Send</button></div>
+    ${fresh ? '<button class="btn light" id="done">Open room</button>' : ''}`, (el) => {
+    el.querySelector('#copy').onclick = async () => { try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { toast(url); } };
+    el.querySelector('#send').onclick = async () => {
+      if (navigator.share) { try { await navigator.share({ title: `bloop · ${name}`, text: `Join ${name} on bloop`, url }); } catch {} }
+      else { try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch { toast(url); } }
+    };
+    el.querySelector('#done')?.addEventListener('click', closeSheet);
+  });
+}
+
+route();
 </script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 {
-  "name": "twin-meme-mvp",
-  "version": "0.1.0",
+  "name": "bloop",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "MVP: turn a video into a meme template, drop a selfie/pet in, get a new AI meme video (fal: Kling 3.0 + Wan 2.2).",
+  "description": "bloop: meme rooms. Pick a template, put a friend or pet in it, get an AI meme video.",
   "scripts": {
     "start": "node server.js",
     "mock": "MOCK_FAL=1 node server.js"

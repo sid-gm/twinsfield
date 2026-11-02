@@ -1,15 +1,60 @@
-# twin meme maker: HTTP API
+# bloop: HTTP API
 
-Local API behind the web app (`server.js`). The same calls will back the iMessage bot later.
+Local API behind the app (`server.js`). Two layers:
+
+- **Room API** (`/api/rooms/…`): what the mobile app uses. Multi-user, consent, pooled wallet. Documented first.
+- **Engine / studio API** (`/api/templates`, `/api/personas`, …): single-user, no auth, used by `/studio`.
 
 - **Base URL:** `http://localhost:3000` (or `PORT` from `.env`)
 - **Auth:** none (local only)
 - **Format:** JSON in and out, except the two upload endpoints (`multipart/form-data`)
-- **API version:** `6`, from `GET /api/settings`. The page refuses to run against an older server.
+- **API version:** `7`, from `GET /api/settings`. The page refuses to run against an older server.
 - **IDs:** 10-character hex strings, e.g. `ac56f38213`
 - **Media URLs:** every `*_url` field is a path under `/media/…` served by the same server
 
-## The flow
+## Room API
+
+**Auth:** joining returns a `token`. Send it as header `x-bloop-member: <token>` on every room call.
+Errors are `{ error, code? }`. Codes the client should handle: `not_member` (401, re-join),
+`low_balance` (402, open the pool),
+`daily_limit` (429), `face_pending` (409).
+
+| Method | Path | Who | Body | Returns |
+|---|---|---|---|---|
+| POST | `/api/rooms` | anyone | `{ name, creator_name }` | `{ token, …state }` |
+| GET | `/api/rooms/:slug/preview` | anyone | | `{ name, invited_by, members, recent }` |
+| POST | `/api/rooms/:slug/join` | anyone | `{ name }` | `{ token, …state }` |
+| GET | `/api/rooms/:slug` | member | | state (poll every ~2.5s) |
+| PATCH | `/api/rooms/:slug` | member | `{ name?, daily_limit? }` (0 = off) | state |
+| POST | `/api/rooms/:slug/topup` | member | `{ amount_cents: 500\|1000\|2000 }` | state |
+| GET | `/api/rooms/:slug/templates?q=&scope=room` | member | | templates (shared + this room's) |
+| POST | `/api/rooms/:slug/templates` | member | multipart `video`, `title?` | template |
+| POST | `/api/rooms/:slug/sources` | member | multipart `video` | source (for the trimmer: `preview_url`, `strip_url`, `strip_frames`, `duration_s`, `min_s`, `max_s`) |
+| POST | `/api/rooms/:slug/sources/link` | member | `{ url, start? }` | source (2 minutes from `start`; `offset_s` = where it begins in the original) |
+| GET | `/api/rooms/:slug/sources/:id` | member | | source |
+| GET | `/api/rooms/:slug/sources/:id/frame?t=` | anyone with the ids | | JPEG still at `t` seconds (cached) |
+| POST | `/api/rooms/:slug/sources/:id/template` | member | `{ start, end, replaces? }` (seconds, 3–10s apart) | template; `replaces` retires the earlier unused trim |
+| GET | `/api/rooms/:slug/templates/:id` | member | | template + `source_trim`, `made_here` |
+| POST | `/api/rooms/:slug/templates/link` | member | `{ url, start? }` (`"0:08"`, `"8"`, `"1m5s"`; default: the link's `?t=`) | template, or 400 with a readable error (15 links/hour per member) |
+| PATCH | `/api/rooms/:slug/templates/:id` | member | `{ main_subject }` (room templates only) | template |
+| POST | `/api/rooms/:slug/faces` | member | multipart `image`, `kind: self\|member\|pet`, `subject_member_id?`, `label?` | face |
+| POST | `/api/rooms/:slug/faces/:id/decide` | the person in it | `{ approve: bool }` | state |
+| DELETE | `/api/rooms/:slug/faces/:id` | adder or subject | | state |
+| POST | `/api/rooms/:slug/hybrids` | member | `{ template_id, face_id, notes? }` | hybrid (frame 1, free) |
+| POST | `/api/rooms/:slug/hybrids/:id/like` | member | | state (toggles) |
+| POST | `/api/rooms/:slug/renders` | member | `{ hybrid_id }` | render (debits the pool) |
+| POST | `/api/rooms/:slug/renders/:id/remix` | member | `{ target }` | new protected template |
+
+**Templates** now include `usability: { status: checking|done, score, label, checks: [{state: ok|warn|bad, label}], tip }`.
+
+**State** (`GET /api/rooms/:slug`): `room` (name, slug, balance_cents, daily_limit), `me` (renders_today), `members`, `faces` (with persona images and `status: pending|approved`), `drafts`
+(last 12 hybrids with `likes: [member_id]`, template, face), `renders` (last 30, with `price_cents`,
+`refunded`, `queue_position`, `fal_request_id`), `contributions`, `ledger` (last 30).
+
+**Money:** `ledger` rows are `trial`, `topup`, `render` (negative) and `refund`. Balance is their sum.
+A render's price is `ceil(fal estimate × BLOOP_MARKUP × 100)` cents; a failed render is refunded once.
+
+## Engine flow (studio API)
 
 ```
 1. Template   POST /api/templates            upload a clip  ──► brief + fit rating (async)

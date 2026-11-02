@@ -1,0 +1,9 @@
+node_modules
+data
+.env
+.git
+start.log
+start.command
+_to_delete
+*.md
+!README.md
